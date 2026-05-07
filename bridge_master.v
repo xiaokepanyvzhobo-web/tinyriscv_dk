@@ -37,27 +37,28 @@
 
     );
 
-    parameter IDLE        = 5'b00001 ;
+    parameter IDLE        = 5'b00000 ;
     parameter RD_TX_CMD   = 5'b00001 ;
     parameter RD_TX_ADDR0 = 5'b00010 ;
     parameter RD_TX_ADDR1 = 5'b00011 ;
     parameter RD_TX_ADDR2 = 5'b00100 ;
     parameter RD_TX_ADDR3 = 5'b00101 ;
-    parameter RD_RX_DATA0 = 5'b00110 ;
-    parameter RD_RX_DATA1 = 5'b00111 ;
-    parameter RD_RX_DATA2 = 5'b01000 ;
-    parameter RD_RX_DATA3 = 5'b01001 ;
+    parameter RD_TX_WAIT  = 5'b00110 ;
+    parameter RD_RX_DATA0 = 5'b00111 ;
+    parameter RD_RX_DATA1 = 5'b01000 ;
+    parameter RD_RX_DATA2 = 5'b01001 ;
+    parameter RD_RX_DATA3 = 5'b01010 ;
     
-    parameter WE_TX_CMD   = 5'b01010 ;
-    parameter WE_TX_ADDR0 = 5'b01011 ;
-    parameter WE_TX_ADDR1 = 5'b01100 ;
-    parameter WE_TX_ADDR2 = 5'b01101 ;
-    parameter WE_TX_ADDR3 = 5'b01110 ;
-    parameter WE_TX_DATA0 = 5'b01111 ;
-    parameter WE_TX_DATA1 = 5'b10000 ;
-    parameter WE_TX_DATA2 = 5'b10001 ;
-    parameter WE_TX_DATA3 = 5'b10010 ;
-    parameter WE_RX_RESP  = 5'b10011 ;
+    parameter WE_TX_CMD   = 5'b01011 ;
+    parameter WE_TX_ADDR0 = 5'b01100 ;
+    parameter WE_TX_ADDR1 = 5'b01101 ;
+    parameter WE_TX_ADDR2 = 5'b01110 ;
+    parameter WE_TX_ADDR3 = 5'b01111 ;
+    parameter WE_TX_DATA0 = 5'b10000 ;
+    parameter WE_TX_DATA1 = 5'b10001 ;
+    parameter WE_TX_DATA2 = 5'b10010 ;
+    parameter WE_TX_DATA3 = 5'b10011 ;
+    parameter WE_RX_RESP  = 5'b10100 ;
 
     reg [`StatusBus]        cs, ns ;
     reg [`BridgeBus]        bmaster_TX_data_reg ;
@@ -141,6 +142,10 @@
             end
 
             RD_TX_ADDR3:begin
+                ns = RD_TX_WAIT;
+            end
+
+            RD_TX_WAIT:begin
                 ns = RD_RX_DATA0;
             end
 
