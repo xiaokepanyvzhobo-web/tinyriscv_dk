@@ -20,10 +20,11 @@
 `define RstDisable 1'b1
 `define ZeroWord 32'h0
 `define ZeroReg 5'h0
+`define ZeroTempReg 8'h0 
 `define WriteEnable 1'b1
 `define WriteDisable 1'b0
 `define ReadEnable 1'b1
-`define ReadDisable 1'b0
+`define ReadDisable 1'b0 // --liudk 2026-05-05
 `define True 1'b1
 `define False 1'b0
 `define ChipEnable 1'b1
@@ -162,3 +163,14 @@
 `define RegWidth 32
 `define RegNum 32        // reg num
 `define RegNumLog2 5
+
+`define BridgeBus 7:0
+`define StatusBus 4:0
+`define WriteCmd 8'h02 
+`define ReadCmd 8'h02 
+
+`define AddrOrDataSlice0 7:0
+`define AddrOrDataSlice1 15:8
+`define AddrOrDataSlice2 23:16
+`define AddrOrDataSlice3 31:24
+
