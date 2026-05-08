@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
  */
-`include "../core/defines.v"
+`include "../rtl/core/include.v"
 
 module bridge_slave (
 
@@ -50,11 +50,10 @@ module bridge_slave (
     parameter WE_RX_DATA3    = 4'b1000 ;
     parameter WE_TX_RESP     = 4'b1001 ;
     // 数据读出过程
-    parameter RD_RX_WAIT     = 4'b1010 ;
-    parameter RD_TX_DATA0    = 4'b1011 ;
-    parameter RD_TX_DATA1    = 4'b1100 ;
-    parameter RD_TX_DATA2    = 4'b1101 ;
-    parameter RD_TX_DATA3    = 4'b1110 ;   
+    parameter RD_TX_DATA0    = 4'b1010 ;
+    parameter RD_TX_DATA1    = 4'b1011 ;
+    parameter RD_TX_DATA2    = 4'b1100 ;
+    parameter RD_TX_DATA3    = 4'b1101 ;
     // Regs 
     reg [`StatusBus_slave]        cs, ns ;
     reg [`BridgeBus]              bslave_TX_data_reg ;
@@ -96,7 +95,7 @@ module bridge_slave (
                     ns = WE_RX_DATA0 ;
                 end
                 else if ( cmd_simple_temp == `ReadCmd_simp ) begin
-                    ns = RD_RX_WAIT ;
+                    ns = RD_TX_DATA0 ;
                 end
                 else begin
                     ns = IDLE ; // need to be cautious -- liudk
@@ -109,7 +108,6 @@ module bridge_slave (
             WE_RX_DATA3: begin ns = WE_TX_RESP  ; end
             WE_TX_RESP:  begin ns = IDLE        ; end
             // Switch to reading status ( Data fetching from Ram/Rom and transmission )
-            RD_RX_WAIT:  begin ns = RD_TX_DATA0 ; end
             RD_TX_DATA0: begin ns = RD_TX_DATA1 ; end
             RD_TX_DATA1: begin ns = RD_TX_DATA2 ; end
             RD_TX_DATA2: begin ns = RD_TX_DATA3 ; end
