@@ -1,4 +1,18 @@
 # Object files
+# 忽略仿真工具生成的垃圾文件和文件夹
+verdiLog/
+novas.conf
+novas.rc
+novas.last
+simv.daidir/
+csrc/
+ucli.key
+*.log
+*.vdb
+*.daidir
+*.fsdb
+.verdi_onesearch_elabdir/
+
 *.o
 *.ko
 *.obj
