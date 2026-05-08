@@ -12,7 +12,7 @@
  * 如果你的目录结构不同，请同步修改下面的 `include 路径。
  */
 
-`include "../rtl/core/include.v"
+`include "../rtl/core/defines.v"
 
 module bridge_top (
     // 时钟和复位

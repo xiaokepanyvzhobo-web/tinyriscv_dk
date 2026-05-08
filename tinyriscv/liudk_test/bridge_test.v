@@ -8,7 +8,7 @@
  * 如果你的目录结构不同，请同步修改下面的 `include 路径。
  */
 
-`include "../rtl/core/include.v"
+`include "../rtl/core/defines.v"
 `timescale 1ns/10ps
 
 module bridge_test () ;

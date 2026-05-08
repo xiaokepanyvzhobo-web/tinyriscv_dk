@@ -14,7 +14,7 @@
  limitations under the License.                                          
  */
 
-`include "../rtl/core/include.v"
+`include "../rtl/core/defines.v"
 
 // ram module
 module ram(

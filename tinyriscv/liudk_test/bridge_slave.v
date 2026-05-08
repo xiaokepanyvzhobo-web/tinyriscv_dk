@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
  */
-`include "../rtl/core/include.v"
+`include "../rtl/core/defines.v"
 
 module bridge_slave (
 
