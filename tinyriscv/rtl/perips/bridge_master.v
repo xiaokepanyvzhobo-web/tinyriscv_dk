@@ -132,7 +132,12 @@
             end
             // 写回响应
             WE_RX_RESP:begin
-                ns = IDLE;
+                if ( bmaster_RX_data == `WE_RsepCmd ) begin
+                    ns = IDLE ;
+                end
+                else begin
+                    ns = WE_RX_RESP ;
+                end
             end
 
             // 读过程：等待数据读出和数据传输

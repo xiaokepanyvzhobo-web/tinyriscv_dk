@@ -164,13 +164,21 @@
 `define RegNum 32        // reg num
 `define RegNumLog2 5
 
+// bridge
 `define BridgeBus 7:0
 `define StatusBus 4:0
-`define WriteCmd 8'h02 
-`define ReadCmd 8'h02 
+`define StatusBus_slave 3:0
+`define WriteCmd 8'h01 
+`define ReadCmd 8'h02
+`define CmdSimple 1:0
+`define WriteCmd_simp 2'b01
+`define ReadCmd_simp 2'b10
 
 `define AddrOrDataSlice0 7:0
 `define AddrOrDataSlice1 15:8
 `define AddrOrDataSlice2 23:16
 `define AddrOrDataSlice3 31:24
+`define WE_RsepCmd 8'h0F
+
+`define ZeroCmdSimple 2'b00
 
