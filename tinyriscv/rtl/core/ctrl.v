@@ -40,7 +40,10 @@ module ctrl(
 
     // to pc_reg
     output reg jump_flag_o,
-    output reg[`InstAddrBus] jump_addr_o
+    output reg[`InstAddrBus] jump_addr_o,
+
+    // to RIB MO_req
+    output wire inst_fetch_halt // liudk
 
     );
 
@@ -64,5 +67,7 @@ module ctrl(
             hold_flag_o = `Hold_None;
         end
     end
+    // 信号传送至RIB总线的M1主机的req信号，使得在以下情况下不可进行取指令
+    assign inst_fetch_halt = jump_flag_i || hold_flag_ex_i || hold_flag_clint_i || hold_flag_rib_i || jtag_halt_flag_i ; // liudk
 
 endmodule

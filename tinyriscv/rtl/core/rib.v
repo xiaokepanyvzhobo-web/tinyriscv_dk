@@ -23,6 +23,7 @@ module rib(
     input wire clk,
     input wire rst,
 
+
     // master 0 interface
     input wire[`MemAddrBus] m0_addr_i,     // 主设备0读、写地址
     input wire[`MemBus] m0_data_i,         // 主设备0写数据

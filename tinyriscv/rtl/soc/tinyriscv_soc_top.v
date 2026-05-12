@@ -52,6 +52,7 @@ module tinyriscv_soc_top(
     wire[`MemBus] m0_data_o;
     wire m0_req_i;
     wire m0_we_i;
+    wire inst_fetch_halt ; // liudk
 
     // master 1 interface
     wire[`MemAddrBus] m1_addr_i;
@@ -267,7 +268,7 @@ module tinyriscv_soc_top(
         .m1_addr_i(m1_addr_i),
         .m1_data_i(`ZeroWord),
         .m1_data_o(m1_data_o),
-        .m1_req_i(`RIB_REQ),
+        .m1_req_i(~inst_fetch_halt), // liudk
         .m1_we_i(`WriteDisable),
 
         // master 2 interface

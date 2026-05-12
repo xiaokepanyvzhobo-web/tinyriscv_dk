@@ -197,10 +197,13 @@ module ex(
 
     // 处理除法指令
     always @ (*) begin
+
         div_dividend_o = reg1_rdata_i;
         div_divisor_o = reg2_rdata_i;
         div_op_o = funct3;
         div_reg_waddr_o = reg_waddr_i;
+
+
         if ((opcode == `INST_TYPE_R_M) && (funct7 == 7'b0000001)) begin
             div_we = `WriteDisable;
             div_wdata = `ZeroWord;
@@ -219,18 +222,28 @@ module ex(
                     div_jump_addr = `ZeroWord;
                 end
             endcase
-        end else begin
+        end
+        
+
+        else begin
+
             div_jump_flag = `JumpDisable;
             div_jump_addr = `ZeroWord;
+
             if (div_busy_i == `True) begin
                 div_start = `DivStart;
                 div_we = `WriteDisable;
                 div_wdata = `ZeroWord;
                 div_waddr = `ZeroWord;
                 div_hold_flag = `HoldEnable;
-            end else begin
+            end 
+            
+
+            else begin
+
                 div_start = `DivStop;
                 div_hold_flag = `HoldDisable;
+                
                 if (div_ready_i == `DivResultReady) begin
                     div_wdata = div_result_i;
                     div_waddr = div_reg_waddr_i;
@@ -241,6 +254,8 @@ module ex(
                     div_waddr = `ZeroWord;
                 end
             end
+
+
         end
     end
 

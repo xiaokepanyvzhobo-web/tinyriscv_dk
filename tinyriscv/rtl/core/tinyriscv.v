@@ -40,13 +40,15 @@ module tinyriscv(
     input wire jtag_halt_flag_i,               // jtag暂停标志
     input wire jtag_reset_flag_i,              // jtag复位PC标志
 
-    input wire[`INT_BUS] int_i                 // 中断信号
+    input wire[`INT_BUS] int_i,                // 中断信号
+
+    output wire inst_fetch_halt ; // liudk
 
     );
 
     // pc_reg模块输出信号
 	wire[`InstAddrBus] pc_pc_o;
-
+    
     // if_id模块输出信号
 	wire[`InstBus] if_inst_o;
     wire[`InstAddrBus] if_inst_addr_o;
@@ -122,6 +124,7 @@ module tinyriscv(
     wire[`Hold_Flag_Bus] ctrl_hold_flag_o;
     wire ctrl_jump_flag_o;
     wire[`InstAddrBus] ctrl_jump_addr_o;
+    
 
     // div模块输出信号
     wire[`RegBus] div_result_o;
@@ -169,7 +172,8 @@ module tinyriscv(
         .hold_flag_clint_i(clint_hold_flag_o),
         .jump_flag_o(ctrl_jump_flag_o),
         .jump_addr_o(ctrl_jump_addr_o),
-        .jtag_halt_flag_i(jtag_halt_flag_i)
+        .jtag_halt_flag_i(jtag_halt_flag_i),
+        .inst_fetch_halt (inst_fetch_halt) // liudk
     );
 
     // regs模块例化
