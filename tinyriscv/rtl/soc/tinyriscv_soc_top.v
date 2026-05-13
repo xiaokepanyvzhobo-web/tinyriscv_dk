@@ -41,26 +41,29 @@ module tinyriscv_soc_top(
     input wire spi_miso,     // SPI MISO引脚
     output wire spi_mosi,    // SPI MOSI引脚
     output wire spi_ss,      // SPI SS引脚
-    output wire spi_clk      // SPI CLK引脚
+    output wire spi_clk,     // SPI CLK引脚
+
+    output wire [`BridgeBus] bmaster_TX_data, // 桥接模块的主接口数据输出总线
+    input wire [`BridgeBus] bmaster_RX_data  // 桥接模块的主接口数据输入总线
 
     );
 
 
     // master 0 interface
-    wire[`MemAddrBus] m0_addr_i;
-    wire[`MemBus] m0_data_i;
-    wire[`MemBus] m0_data_o;
     wire m0_req_i;
     wire m0_we_i;
     wire m0_ack_o;
+    wire[`MemAddrBus] m0_addr_i;
+    wire[`MemBus] m0_data_i;
+    wire[`MemBus] m0_data_o;
 
     // master 1 interface
-    wire[`MemAddrBus] m1_addr_i;
-    wire[`MemBus] m1_data_i;
-    wire[`MemBus] m1_data_o;
     wire m1_req_i;
     wire m1_we_i;
     wire m1_ack_o;
+    wire[`MemAddrBus] m1_addr_i;
+    wire[`MemBus] m1_data_i;
+    wire[`MemBus] m1_data_o;
 
     // master 2 interface
     wire[`MemAddrBus] m2_addr_i;
@@ -75,18 +78,23 @@ module tinyriscv_soc_top(
     wire[`MemBus] m3_data_o;
     wire m3_req_i;
     wire m3_we_i;
+    wire m3_ack_o;
 
     // slave 0 interface
+    wire s0_req_o;
+    wire s0_we_o;
+    wire s0_ack_i;
     wire[`MemAddrBus] s0_addr_o;
     wire[`MemBus] s0_data_o;
     wire[`MemBus] s0_data_i;
-    wire s0_we_o;
 
     // slave 1 interface
+    wire s1_req_o;
+    wire s1_we_o;
+    wire s1_ack_i;
     wire[`MemAddrBus] s1_addr_o;
     wire[`MemBus] s1_data_o;
     wire[`MemBus] s1_data_i;
-    wire s1_we_o;
 
     // slave 2 interface
     wire[`MemAddrBus] s2_addr_o;
@@ -140,7 +148,6 @@ module tinyriscv_soc_top(
     // 低电平表示已经halt住CPU
     assign halted_ind = ~jtag_halt_req_o;
 
-
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
             over <= 1'b1;
@@ -177,26 +184,6 @@ module tinyriscv_soc_top(
         .jtag_reset_flag_i(jtag_reset_req_o),
 
         .int_i(int_flag)
-    );
-
-    // rom模块例化
-    rom u_rom(
-        .clk(clk),
-        .rst(rst),
-        .we_i(s0_we_o),
-        .addr_i(s0_addr_o),
-        .data_i(s0_data_o),
-        .data_o(s0_data_i)
-    );
-
-    // ram模块例化
-    ram u_ram(
-        .clk(clk),
-        .rst(rst),
-        .we_i(s1_we_o),
-        .addr_i(s1_addr_o),
-        .data_i(s1_data_o),
-        .data_o(s1_data_i)
     );
 
     // timer模块例化
@@ -290,12 +277,14 @@ module tinyriscv_soc_top(
         .m3_data_o(m3_data_o),
         .m3_req_i(m3_req_i),
         .m3_we_i(m3_we_i),
+        .m3_ack_o(m3_ack_o),
 
         // slave 0 interface
         .s0_addr_o(s0_addr_o),
         .s0_data_o(s0_data_o),
         .s0_data_i(s0_data_i),
         .s0_we_o(s0_we_o),
+        .s0_req_o(s0_req_o),
         .s0_ack_i(s0_ack_i),
 
         // slave 1 interface
@@ -332,6 +321,24 @@ module tinyriscv_soc_top(
         .hold_flag_o(rib_hold_flag_o)
     );
 
+    // Bridge模块例化
+    bridge_master u_bridge_master(
+        .clk(clk),
+        .rst(rst),
+
+        // rib接口
+        .rib_req_i(s0_req_o),
+        .rib_we_i(s0_we_i),
+        .rib_ack_o(s0_ack_i),
+        .rib_addr_i(s0_addr_o),
+        .rib_data_i(s0_data_o),
+        .rib_data_o(s0_data_i),
+
+        // jtag接口
+        .bmaster_RX_data(bmaster_RX_data),
+        .bmaster_TX_data(bmaster_TX_data)
+    );
+
     // 串口下载模块例化
     uart_debug u_uart_debug(
         .clk(clk),
@@ -341,7 +348,8 @@ module tinyriscv_soc_top(
         .mem_we_o(m3_we_i),
         .mem_addr_o(m3_addr_i),
         .mem_wdata_o(m3_data_i),
-        .mem_rdata_i(m3_data_o)
+        .mem_rdata_i(m3_data_o),
+        .mem_write_ack_i(m3_ack_o)
     );
 
     // jtag模块例化

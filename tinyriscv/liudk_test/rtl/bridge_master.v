@@ -33,7 +33,7 @@
     output wire[`BridgeBus]      bmaster_TX_data ,
 
     // 流水线停止标志信号
-    output reg                   hold_flag_o    // 流水线暂停标志
+    output wire                   rib_ack_o    // 流水线暂停标志
 
     );
     // 空闲状态
@@ -65,6 +65,8 @@
     reg [`MemBus]           data_temp;
     reg [`MemAddrBus]       addr_temp;
     reg                     we_temp;
+
+    reg rib_ack_o_reg ;
 
     always @ ( posedge clk ) begin
         if( rst == `RstEnable )
@@ -261,14 +263,20 @@
         end
     end
 
+    always @ ( posedge clk ) begin
+        if ( rst == `RstEnable ) begin
+            rib_ack_o_reg <= `AckDisable;
+        end
+        else if ( (cs == RD_RX_DATA3) || (cs == WE_RX_RESP) && (bmaster_RX_data == `WE_RespCmd) ) begin
+            rib_ack_o_reg <= `AckEnable;
+        end
+        else begin
+            rib_ack_o_reg <= `AckDisable;
+        end
+    end
+
     assign rib_data_o = data_temp ;
     assign bmaster_TX_data = bmaster_TX_data_reg ;
-
-    always @(posedge clk) begin
-        if (rst == `RstEnable)
-            hold_flag_o <= `HoldDisable;
-        else
-            hold_flag_o <= `HoldDisable;   // 暂时永远不暂停
-    end
+    assign rib_ack_o = rib_ack_o_reg;
                     
  endmodule

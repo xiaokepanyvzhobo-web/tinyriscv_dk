@@ -33,7 +33,7 @@
     output wire[`BridgeBus]      bmaster_TX_data ,
 
     // 流水线停止标志信号
-    output reg                   rib_ack_o    // 流水线暂停标志
+    output wire                   rib_ack_o    // 流水线暂停标志
 
     );
     // 空闲状态
@@ -267,7 +267,7 @@
         if ( rst == `RstEnable ) begin
             rib_ack_o_reg <= `AckDisable;
         end
-        else if ( cs == RD_RX_DATA3 ) begin
+        else if ( (cs == RD_RX_DATA3) || (cs == WE_RX_RESP) && (bmaster_RX_data == `WE_RespCmd) ) begin
             rib_ack_o_reg <= `AckEnable;
         end
         else begin

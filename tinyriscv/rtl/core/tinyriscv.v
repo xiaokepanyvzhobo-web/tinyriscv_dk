@@ -45,8 +45,6 @@ module tinyriscv(
 
     input wire[`INT_BUS] int_i                 // 中断信号
 
-    
-
     );
 
     // pc_reg模块输出信号
@@ -110,6 +108,7 @@ module tinyriscv(
     wire[`RegBus] ex_csr_wdata_o;
     wire ex_csr_we_o;
     wire[`MemAddrBus] ex_csr_waddr_o;
+    wire [`MemBus] ex_mem_rdata_in;
 
     // regs模块输出信号
     wire[`RegBus] regs_rdata1_o;
@@ -127,6 +126,10 @@ module tinyriscv(
     wire[`Hold_Flag_Bus] ctrl_hold_flag_o;
     wire ctrl_jump_flag_o;
     wire[`InstAddrBus] ctrl_jump_addr_o;
+    wire reg_we_gate_o;
+    wire div_start_gate_o;
+    wire mem_use_latched_o;
+    wire [3:0] ctrl_state_o;
 
     // div模块输出信号
     wire[`RegBus] div_result_o;
@@ -144,13 +147,36 @@ module tinyriscv(
     wire clint_hold_flag_o;
 
 
-    assign rib_ex_addr_o = (ex_mem_we_o == `WriteEnable)? ex_mem_waddr_o: ex_mem_raddr_o;
+    assign rib_ex_addr_o = (rib_ex_we_o == `WriteEnable)? ex_mem_waddr_o: ex_mem_raddr_o;
     assign rib_ex_data_o = ex_mem_wdata_o;
-    assign rib_ex_req_o = ex_mem_req_o;
-    assign rib_ex_we_o = ex_mem_we_o;
+    // assign rib_ex_req_o = ex_mem_req_o;
+    // assign rib_ex_we_o = ex_mem_we_o;
 
     assign rib_pc_addr_o = pc_pc_o;
 
+    // 锁存读阶段返回的 mem_rdata，供写阶段使用
+    reg [31:0] mem_rdata_latched;
+    always @(posedge clk) begin
+        if (rst == `RstEnable) begin
+            mem_rdata_latched <= 32'h0;
+        end else if (ctrl_state_o == 4'b0101  && rib_ex_ack_i) begin
+            mem_rdata_latched <= rib_ex_data_i;
+        end
+    end
+
+    // 喂给 ex.v 的 mem_rdata：旁路选择
+    wire [31:0] ex_mem_rdata_in = mem_use_latched_o ? mem_rdata_latched : rib_ex_data_i;
+
+    // reg_we 门控
+    wire final_reg_we;
+    assign final_reg_we = ex_reg_we_o & reg_we_gate_o;
+
+    // div_start 门控
+    wire final_div_start;
+    assign final_div_start = ex_div_start_o & div_start_gate_o;
+
+    wire final_csr_we;
+    assign final_csr_we = ex_csr_we_o & (ctrl_state_o == 4'd3); // S_EX
 
     // pc_reg模块例化
     pc_reg u_pc_reg(
@@ -191,27 +217,28 @@ module tinyriscv(
     .mem_ack_i       (rib_ex_ack_i),       // 来自桥接 
     .div_busy_i      (div_busy_o),           // liudk
     .div_ready_i     (div_ready_o),
-    .jtag_halt_flag_i(jtag_halt_flag),
-    .hold_flag_clint_i(clint_hold_flag),
+    .jtag_halt_flag_i(jtag_halt_flag_i),
+    .hold_flag_clint_i(clint_hold_flag_o),
     .int_assert_i    (clint_int_assert_o),
     .int_addr_i      (clint_int_addr_o),
-    .hold_flag_o     (ctrl_hold_flag),
-    .jump_flag_o     (ctrl_jump_flag),
-    .jump_addr_o     (ctrl_jump_addr),
-    .if_req_o        (bridge_if_req),
-    .mem_req_o       (bridge_mem_req),
-    .mem_we_o        (bridge_mem_we),
-    .reg_we_gate_o   (reg_we_gate),
-    .div_start_gate_o(div_start_gate),
-    .mem_rdata_use_latched_o(mem_use_latched),
-    .state_o         ()  // open
+    .hold_flag_o     (ctrl_hold_flag_o),
+    .jump_flag_o     (ctrl_jump_flag_o),
+    .jump_addr_o     (ctrl_jump_addr_o),
+    .if_req_o        (rib_pc_req_o),
+    .mem_req_o       (rib_ex_req_o),
+    .mem_we_o        (rib_ex_we_o),
+    .reg_we_gate_o   (reg_we_gate_o),  // need to check
+    .div_start_gate_o(div_start_gate_o), // need to check
+    .mem_rdata_use_latched_o(mem_use_latched_o), // need to fix
+    .state_o         (ctrl_state_o)  // open
 );
+
 
     // regs模块例化
     regs u_regs(
         .clk(clk),
         .rst(rst),
-        .we_i(ex_reg_we_o),
+        .we_i(final_reg_we),
         .waddr_i(ex_reg_waddr_o),
         .wdata_i(ex_reg_wdata_o),
         .raddr1_i(id_reg1_raddr_o),
@@ -228,7 +255,7 @@ module tinyriscv(
     csr_reg u_csr_reg(
         .clk(clk),
         .rst(rst),
-        .we_i(ex_csr_we_o),
+        .we_i(final_csr_we),
         .raddr_i(id_csr_raddr_o),
         .waddr_i(ex_csr_waddr_o),
         .data_i(ex_csr_wdata_o),
@@ -330,7 +357,7 @@ module tinyriscv(
         .op2_i(ie_op2_o),
         .op1_jump_i(ie_op1_jump_o),
         .op2_jump_i(ie_op2_jump_o),
-        .mem_rdata_i(rib_ex_data_i),
+        .mem_rdata_i(ex_mem_rdata_in),
         .mem_wdata_o(ex_mem_wdata_o),
         .mem_raddr_o(ex_mem_raddr_o),
         .mem_waddr_o(ex_mem_waddr_o),
@@ -367,7 +394,7 @@ module tinyriscv(
         .rst(rst),
         .dividend_i(ex_div_dividend_o),
         .divisor_i(ex_div_divisor_o),
-        .start_i(ex_div_start_o),
+        .start_i(final_div_start),
         .op_i(ex_div_op_o),
         .reg_waddr_i(ex_div_reg_waddr_o),
         .result_o(div_result_o),

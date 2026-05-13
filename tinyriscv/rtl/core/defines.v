@@ -183,6 +183,6 @@
 `define ZeroCmdSimple 2'b00
 
 //RIB 
-`define `AckEnable 1'b1
-`define `AckDisable 1'b0
+`define AckEnable 1'b1
+`define AckDisable 1'b0
 

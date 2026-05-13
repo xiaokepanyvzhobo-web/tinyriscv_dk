@@ -38,6 +38,7 @@
 
 // 烧写起始地址
 `define ROM_START_ADDR          32'h0
+·define AckEnable              1'b1
 
 
 // 串口更新固件模块
@@ -47,6 +48,8 @@ module uart_debug(
     input wire rst,                // 复位信号
 
     input wire debug_en_i,         // 模块使能信号
+
+    input wire mem_write_ack_i,    // 内存写入完成信号
 
     output wire req_o,
     output reg mem_we_o,
@@ -72,6 +75,7 @@ module uart_debug(
     localparam S_CRC_CALC                = 14'h0800;
     localparam S_CRC_END                 = 14'h1000;
     localparam S_WRITE_MEM               = 14'h2000;
+    localparam S_WRITE_WAIT              = 14'h4000;
 
     reg[13:0] state;
 
@@ -106,26 +110,26 @@ module uart_debug(
             remain_packet_count <= 16'h0;
         end else begin
             case (state)
-                S_IDLE: begin
+                S_IDLE: begin // UART的控制寄存器写入内容，使能UART模块，使其可发送可接收
                     mem_addr_o <= `UART_CTRL_REG;
                     mem_wdata_o <= 32'h3;
                     mem_we_o <= 1'b1;
                     state <= S_INIT_UART_BAUD;
                 end
-                S_INIT_UART_BAUD: begin
+                S_INIT_UART_BAUD: begin // UART的波特率控制器，声明UART的波特率
                     mem_addr_o <= `UART_BAUD_REG;
                     mem_wdata_o <= `UART_BAUD_115200;
                     mem_we_o <= 1'b1;
                     state <= S_REC_FIRST_PACKET;
                 end
-                S_REC_FIRST_PACKET: begin
+                S_REC_FIRST_PACKET: begin // 接受第一个数据包，第一个数据包包含了固件的大小信息
                     remain_packet_count <= 16'h0;
                     mem_addr_o <= 32'h0;
                     mem_we_o <= 1'b0;
                     mem_wdata_o <= 32'h0;
                     state <= S_CLEAR_UART_RX_OVER_FLAG;
                 end
-                S_REC_REMAIN_PACKET: begin
+                S_REC_REMAIN_PACKET: begin // 接收剩余的数据包，直到接收完所有的固件数据
                     mem_addr_o <= 32'h0;
                     mem_we_o <= 1'b0;
                     mem_wdata_o <= 32'h0;
@@ -186,6 +190,12 @@ module uart_debug(
                         mem_addr_o <= write_mem_addr;
                         mem_wdata_o <= write_mem_data;
                         mem_we_o <= 1'b1;
+                        state <= S_WRITE_WAIT;
+                    end
+                end
+                S_WRITE_WAIT:begin
+                    if ( mem_write_ack_i == `AckEnable ) begin
+                        state <= S_WRITE_MEM ;
                     end
                 end
                 S_SEND_ACK: begin
@@ -261,7 +271,7 @@ module uart_debug(
         end
     end
 
-    // 烧写固件
+    // 烧写固件，地址的更新
     always @ (posedge clk) begin
         if (rst == 1'b0 || debug_en_i == 1'b0) begin
             write_mem_addr <= 32'h0;
@@ -280,7 +290,7 @@ module uart_debug(
             endcase
         end
     end
-
+    // 烧写固件，数据的更新
     always @ (posedge clk) begin
         if (rst == 1'b0 || debug_en_i == 1'b0) begin
             write_mem_data <= 32'h0;

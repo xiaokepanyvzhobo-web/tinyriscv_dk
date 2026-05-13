@@ -52,6 +52,7 @@ module rib(
     output reg[`MemBus] m3_data_o,         // 主设备3读取到的数据
     input wire m3_req_i,                   // 主设备3访问请求标志
     input wire m3_we_i,                    // 主设备3写标志
+    output reg m3_ack_o,                   // 主设备3访问响应标志
 
     // slave 0 interface
     output reg[`MemAddrBus] s0_addr_o,     // 从设备0读、写地址
@@ -159,7 +160,7 @@ module rib(
 
         m0_ack_o = `AckDisable;
         m1_ack_o = `AckDisable;
-
+        m3_ack_o = `AckDisable;
 
         s0_addr_o = `ZeroWord;
         s1_addr_o = `ZeroWord;
@@ -373,6 +374,7 @@ module rib(
                         s0_addr_o = {{4'h0}, {m3_addr_i[27:0]}};
                         s0_data_o = m3_data_i;
                         m3_data_o = s0_data_i;
+                        m3_ack_o = s0_ack_i; // --liudk 2026-05-13
                     end
                     slave_1: begin
                         s0_we_o = m3_we_i;
@@ -380,6 +382,7 @@ module rib(
                         s0_addr_o = {{4'h0}, {m3_addr_i[27:0]}};
                         s0_data_o = m3_data_i;
                         m3_data_o = s0_data_i;
+                        m3_ack_o = s0_ack_i; // --liudk 2026-05-13
                     end
                     slave_2: begin
                         s2_we_o = m3_we_i;

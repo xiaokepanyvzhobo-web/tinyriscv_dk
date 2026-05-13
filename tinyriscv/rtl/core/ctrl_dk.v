@@ -200,7 +200,7 @@ module ctrl_dk(
 
     // SB/SH 在写阶段使用之前锁存的 mem_rdata
     assign mem_rdata_use_latched_o = is_sb_sh_inst
-                                  && ((state == S_MEM_W_REQ) || (state == S_MEM_W_WAIT));
+                                  && ((state == S_MEM_W_REQ));
 
     // 寄存器写回门控
     //   - 普通指令：S_EX 拍写回
