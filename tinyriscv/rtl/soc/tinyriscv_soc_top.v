@@ -52,6 +52,7 @@ module tinyriscv_soc_top(
     wire[`MemBus] m0_data_o;
     wire m0_req_i;
     wire m0_we_i;
+    wire m0_ack_o;
 
     // master 1 interface
     wire[`MemAddrBus] m1_addr_i;
@@ -59,6 +60,7 @@ module tinyriscv_soc_top(
     wire[`MemBus] m1_data_o;
     wire m1_req_i;
     wire m1_we_i;
+    wire m1_ack_o;
 
     // master 2 interface
     wire[`MemAddrBus] m2_addr_i;
@@ -158,9 +160,12 @@ module tinyriscv_soc_top(
         .rib_ex_data_o(m0_data_i),
         .rib_ex_req_o(m0_req_i),
         .rib_ex_we_o(m0_we_i),
+        .rib_ex_ack_i(m0_ack_o),
 
         .rib_pc_addr_o(m1_addr_i),
         .rib_pc_data_i(m1_data_o),
+        .rib_pc_req_o(m1_req_i),
+        .rib_pc_ack_i(m1_ack_o),
 
         .jtag_reg_addr_i(jtag_reg_addr_o),
         .jtag_reg_data_i(jtag_reg_data_o),
@@ -262,13 +267,15 @@ module tinyriscv_soc_top(
         .m0_data_o(m0_data_o),
         .m0_req_i(m0_req_i),
         .m0_we_i(m0_we_i),
+        .m0_ack_o(m0_ack_o),
 
         // master 1 interface
         .m1_addr_i(m1_addr_i),
         .m1_data_i(`ZeroWord),
         .m1_data_o(m1_data_o),
-        .m1_req_i(`RIB_REQ),
+        .m1_req_i(m1_req_i),
         .m1_we_i(`WriteDisable),
+        .m1_ack_o(m1_ack_o),
 
         // master 2 interface
         .m2_addr_i(m2_addr_i),
@@ -289,12 +296,14 @@ module tinyriscv_soc_top(
         .s0_data_o(s0_data_o),
         .s0_data_i(s0_data_i),
         .s0_we_o(s0_we_o),
+        .s0_ack_i(s0_ack_i),
 
         // slave 1 interface
         .s1_addr_o(s1_addr_o),
         .s1_data_o(s1_data_o),
         .s1_data_i(s1_data_i),
         .s1_we_o(s1_we_o),
+        .s1_ack_i(s1_ack_i),
 
         // slave 2 interface
         .s2_addr_o(s2_addr_o),

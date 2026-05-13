@@ -27,7 +27,10 @@ module tinyriscv(
     output wire[`MemBus] rib_ex_data_o,        // 写入外设的数据
     output wire rib_ex_req_o,                  // 访问外设请求
     output wire rib_ex_we_o,                   // 写外设标志
+    input wire rib_ex_ack_i,                   // 访问外设响应
 
+    output wire rib_pc_req_o,                  // 取指请求
+    input wire rib_pc_ack_i,                   // 取指响应
     output wire[`MemAddrBus] rib_pc_addr_o,    // 取指地址
     input wire[`MemBus] rib_pc_data_i,         // 取到的指令内容
 
@@ -41,6 +44,8 @@ module tinyriscv(
     input wire jtag_reset_flag_i,              // jtag复位PC标志
 
     input wire[`INT_BUS] int_i                 // 中断信号
+
+    
 
     );
 
@@ -159,6 +164,7 @@ module tinyriscv(
     );
 
     // ctrl模块例化
+    /*
     ctrl u_ctrl(
         .rst(rst),
         .jump_flag_i(ex_jump_flag_o),
@@ -171,6 +177,35 @@ module tinyriscv(
         .jump_addr_o(ctrl_jump_addr_o),
         .jtag_halt_flag_i(jtag_halt_flag_i)
     );
+    */
+
+    ctrl_dk u_ctrl_dk(
+    .clk             (clk),
+    .rst             (rst),
+    .inst_at_ex_i    (ie_inst_o),       // ID/EX 的 inst_o
+    .jump_flag_i     (ex_jump_flag_o),
+    .jump_addr_i     (ex_jump_addr_o),
+    .hold_flag_ex_i  (ex_hold_flag_o),
+    .hold_flag_rib_i (rib_hold_flag_i),
+    .if_ack_i        (rib_pc_ack_i),       // 来自桥接
+    .mem_ack_i       (rib_ex_ack_i),       // 来自桥接 
+    .div_busy_i      (div_busy_o),           // liudk
+    .div_ready_i     (div_ready_o),
+    .jtag_halt_flag_i(jtag_halt_flag),
+    .hold_flag_clint_i(clint_hold_flag),
+    .int_assert_i    (clint_int_assert_o),
+    .int_addr_i      (clint_int_addr_o),
+    .hold_flag_o     (ctrl_hold_flag),
+    .jump_flag_o     (ctrl_jump_flag),
+    .jump_addr_o     (ctrl_jump_addr),
+    .if_req_o        (bridge_if_req),
+    .mem_req_o       (bridge_mem_req),
+    .mem_we_o        (bridge_mem_we),
+    .reg_we_gate_o   (reg_we_gate),
+    .div_start_gate_o(div_start_gate),
+    .mem_rdata_use_latched_o(mem_use_latched),
+    .state_o         ()  // open
+);
 
     // regs模块例化
     regs u_regs(

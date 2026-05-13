@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and     
  limitations under the License.                                          
  */
-`include "../core/defines.v"
+`include "defines.v"
 
  module bridge_master(
 
@@ -33,7 +33,7 @@
     output wire[`BridgeBus]      bmaster_TX_data ,
 
     // 流水线停止标志信号
-    output reg                   hold_flag_o    // 流水线暂停标志
+    output reg                   rib_ack_o    // 流水线暂停标志
 
     );
     // 空闲状态
@@ -65,6 +65,8 @@
     reg [`MemBus]           data_temp;
     reg [`MemAddrBus]       addr_temp;
     reg                     we_temp;
+
+    reg rib_ack_o_reg ;
 
     always @ ( posedge clk ) begin
         if( rst == `RstEnable )
@@ -261,8 +263,21 @@
         end
     end
 
+    always @ ( posedge clk ) begin
+        if ( rst == `RstEnable ) begin
+            rib_ack_o_reg <= `AckDisable;
+        end
+        else if ( cs == RD_RX_DATA3 ) begin
+            rib_ack_o_reg <= `AckEnable;
+        end
+        else begin
+            rib_ack_o_reg <= `AckDisable;
+        end
+    end
+
     assign rib_data_o = data_temp ;
     assign bmaster_TX_data = bmaster_TX_data_reg ;
+    assign rib_ack_o = rib_ack_o_reg;
 
     always @(posedge clk) begin
         if (rst == `RstEnable)
