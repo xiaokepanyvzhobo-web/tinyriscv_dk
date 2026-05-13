@@ -29,9 +29,9 @@
 `define UART_RX_OVER_FLAG       32'h2
 
 // 第一个包的大小
-`define UART_FIRST_PACKET_LEN   8'd131
+`define UART_FIRST_PACKET_LEN   8'd35
 // 其他包的大小(每次烧写的字节数)
-`define UART_REMAIN_PACKET_LEN  8'd131
+`define UART_REMAIN_PACKET_LEN  8'd35
 
 `define UART_RESP_ACK           32'h6
 `define UART_RESP_NAK           32'h15
@@ -80,7 +80,7 @@ module uart_debug(
     reg[13:0] state;
 
     // 存放串口接收到的数据
-    reg[7:0] rx_data[0:131];
+    reg[7:0] rx_data[0:34];
     reg[7:0] rec_bytes_index;
     reg[7:0] need_to_rec_bytes;
     reg[15:0] remain_packet_count;
