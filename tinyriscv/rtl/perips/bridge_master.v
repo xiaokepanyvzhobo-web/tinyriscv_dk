@@ -233,7 +233,7 @@
             addr_temp <= `ZeroWord ;
             we_temp <= 1'b0 ;
         end
-        else if ( rib_req_i ) begin
+        else if ( rib_req_i && (cs == IDLE) ) begin
             addr_temp <= rib_addr_i ;
             we_temp <= rib_we_i ;
         end
@@ -244,7 +244,7 @@
             data_temp <= `ZeroWord ;
         end
         else begin
-            if ( rib_we_i && rib_req_i ) begin
+            if ( rib_we_i && rib_req_i && (cs == IDLE) ) begin
                 data_temp <= rib_data_i ;
             end
             else begin
