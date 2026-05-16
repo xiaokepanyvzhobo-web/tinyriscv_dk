@@ -21,6 +21,7 @@ $DESIGN_PATH/rtl/debug/uart_debug.v
 $DESIGN_PATH/rtl/perips/bridge_master.v
 $DESIGN_PATH/rtl/perips/bridge_slave.v
 $DESIGN_PATH/rtl/perips/gpio.v
+$DESIGN_PATH/rtl/perips/iic_controller.v
 $DESIGN_PATH/rtl/perips/ram.v
 $DESIGN_PATH/rtl/perips/rom.v
 $DESIGN_PATH/rtl/perips/spi.v

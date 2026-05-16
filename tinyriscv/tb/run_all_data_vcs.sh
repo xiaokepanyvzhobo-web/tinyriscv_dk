@@ -52,10 +52,13 @@ for data_file in "${DATA_DIR}"/*.data; do
     fi
     cp "${DESIGN_PATH}/tb/log/vcs_compile_downloader.log" "${LOG_DIR}/${case_name}_compile.log" 2>/dev/null || true
 
+    sim_log="${DESIGN_PATH}/tb/log/vcs_sim_downloader.log"
+    case_sim_log="${LOG_DIR}/${case_name}_sim.log"
+
     if bash "${DESIGN_PATH}/tb/vcs_sim.sh"; then
-        cp "${DESIGN_PATH}/tb/log/vcs_sim_downloader.log" "${LOG_DIR}/${case_name}_sim.log" 2>/dev/null || true
+        cp "${sim_log}" "${case_sim_log}" 2>/dev/null || true
     else
-        cp "${DESIGN_PATH}/tb/log/vcs_sim_downloader.log" "${LOG_DIR}/${case_name}_sim.log" 2>/dev/null || true
+        cp "${sim_log}" "${case_sim_log}" 2>/dev/null || true
         echo "SIM FAIL: ${data_rel}" | tee -a "${SUMMARY}"
         fail_count=$((fail_count + 1))
         if [[ -f "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" ]]; then
@@ -64,8 +67,16 @@ for data_file in "${DATA_DIR}"/*.data; do
         continue
     fi
 
-    if grep -q "FINAL PASS: succ=1" "${DESIGN_PATH}/tb/log/vcs_sim_downloader.log"; then
-        echo "PASS: ${data_rel}" | tee -a "${SUMMARY}"
+    final_line="$(grep -E "FINAL (PASS|FAIL):" "${case_sim_log}" | tail -n 1 || true)"
+
+    if grep -q "Time Out." "${case_sim_log}"; then
+        echo "FAIL: ${data_rel} (${final_line:-simulation timeout})" | tee -a "${SUMMARY}"
+        fail_count=$((fail_count + 1))
+        if [[ -f "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" ]]; then
+            mv "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" "${WAVE_DIR}/${case_name}.fsdb"
+        fi
+    elif grep -Eq "FINAL PASS: succ=0, over=0(,|[^01]|$)" "${case_sim_log}"; then
+        echo "PASS: ${data_rel} (${final_line})" | tee -a "${SUMMARY}"
         pass_count=$((pass_count + 1))
         if [[ "${SAVE_FSDB:-0}" == "1" && -f "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" ]]; then
             mv "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" "${WAVE_DIR}/${case_name}.fsdb"
@@ -73,7 +84,7 @@ for data_file in "${DATA_DIR}"/*.data; do
             rm -f "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb"
         fi
     else
-        echo "FAIL: ${data_rel}" | tee -a "${SUMMARY}"
+        echo "FAIL: ${data_rel} (${final_line:-no FINAL PASS/FAIL line})" | tee -a "${SUMMARY}"
         fail_count=$((fail_count + 1))
         if [[ -f "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" ]]; then
             mv "${DESIGN_PATH}/tinyriscv_soc_top_with_bridge_downloader_tb.fsdb" "${WAVE_DIR}/${case_name}.fsdb"

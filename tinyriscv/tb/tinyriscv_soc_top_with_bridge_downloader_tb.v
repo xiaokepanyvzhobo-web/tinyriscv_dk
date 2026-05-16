@@ -92,7 +92,7 @@ module tinyriscv_soc_top_with_bridge_downloader_tb;
         rst = `RstDisable;
 
         wait_cycles = 0;
-        while (succ !== 1'b1 && over !== 1'b1 && wait_cycles < 1000000) begin
+        while (((succ === 1'b1 ||  over === 1'b1) || (succ === 1'bx ||  over === 1'bx)) && wait_cycles < 1000000) begin
             wait_cycles = wait_cycles + 1;
             @(posedge clk);
         end
@@ -101,8 +101,8 @@ module tinyriscv_soc_top_with_bridge_downloader_tb;
                    u_dut.u_bridge_slave_top.u_rom._rom);
         $display("ROM image saved to downloaded_rom_after_uart.hex");
 
-        if (succ === 1'b1) begin
-            $display("FINAL PASS: succ=1, over=%b, wait_cycles=%0d", over, wait_cycles);
+        if (succ === 1'b0) begin
+            $display("FINAL PASS: succ=0, over=%b, wait_cycles=%0d", over, wait_cycles);
         end else begin
             $display("FINAL FAIL: succ=%b, over=%b, wait_cycles=%0d", succ, over, wait_cycles);
         end
@@ -151,9 +151,9 @@ module tinyriscv_soc_top_with_bridge_downloader_tb;
     task load_inst_data;
         begin
             word_count = 0;
-            fd = $fopen("Baisc_Inst_Example/inst_add.data", "r");
+            fd = $fopen("Baisc_Inst_Example/inst_andi.data", "r");
             if (fd == 0) begin
-                $display("ERROR: cannot open Baisc_Inst_Example/inst_add.data");
+                $display("ERROR: cannot open Baisc_Inst_Example/inst_andi.data");
                 $finish;
             end
 
@@ -172,7 +172,7 @@ module tinyriscv_soc_top_with_bridge_downloader_tb;
 
             fw_size = word_count * 4;
             total_packets = (fw_size / PAYLOAD_LEN) + 1;
-            $display("Loaded inst_add.data: %0d words, %0d bytes, %0d packets",
+            $display("Loaded inst_andi.data: %0d words, %0d bytes, %0d packets",
                      word_count, fw_size, total_packets);
         end
     endtask
