@@ -69,7 +69,11 @@ module ctrl_dk(
     localparam S_MEM_W_REQ   = 4'd6;
     localparam S_MEM_W_WAIT  = 4'd7;
     localparam S_DIV_WAIT    = 4'd8;
-    localparam S_DONE        = 4'd9;
+    localparam S_RT_R_REQ    = 4'd10;
+    localparam S_RT_R_WAIT   = 4'd11;
+    localparam S_DONE        = 4'd12;
+    // 新增rT指令，读取传感器中的温度
+
 
     reg [3:0] state, next_state;
 
@@ -212,7 +216,7 @@ module ctrl_dk(
                         || ((state == S_DIV_WAIT)   && (div_ready_i == `DivResultReady));
 
     // 除法启动门控
-    assign div_start_gate_o = (state == S_EX) || (state == S_DIV_WAIT);
+    assign div_start_gate_o = (state == S_EX) || (state == S_DIV_WAIT && div_busy_i);
 
     assign state_o = state;
 

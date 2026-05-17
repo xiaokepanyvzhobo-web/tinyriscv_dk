@@ -211,36 +211,35 @@ module ex(
                     div_jump_flag = `JumpEnable;
                     div_hold_flag = `HoldEnable;
                     div_jump_addr = op1_jump_add_op2_jump_res;
+                    if ( div_ready_i == `DivResultReady ) begin
+                        div_wdata = div_result_i;
+                        div_waddr = div_reg_waddr_i;
+                        div_we = `WriteEnable;
+                    end else begin
+                    div_we = `WriteDisable;
+                    div_wdata = `ZeroWord;
+                    div_waddr = `ZeroWord;
+                    end
                 end
                 default: begin
                     div_start = `DivStop;
                     div_jump_flag = `JumpDisable;
                     div_hold_flag = `HoldDisable;
                     div_jump_addr = `ZeroWord;
-                end
-            endcase
-        end else begin
-            div_jump_flag = `JumpDisable;
-            div_jump_addr = `ZeroWord;
-            if (div_busy_i == `True) begin
-                div_start = `DivStart;
-                div_we = `WriteDisable;
-                div_wdata = `ZeroWord;
-                div_waddr = `ZeroWord;
-                div_hold_flag = `HoldEnable;
-            end else begin
-                div_start = `DivStop;
-                div_hold_flag = `HoldDisable;
-                if (div_ready_i == `DivResultReady) begin
-                    div_wdata = div_result_i;
-                    div_waddr = div_reg_waddr_i;
-                    div_we = `WriteEnable;
-                end else begin
                     div_we = `WriteDisable;
                     div_wdata = `ZeroWord;
                     div_waddr = `ZeroWord;
                 end
-            end
+            endcase
+        end
+        else begin
+            div_start = `DivStop;
+            div_jump_flag = `JumpDisable;
+            div_hold_flag = `HoldDisable;
+            div_jump_addr = `ZeroWord;
+            div_we = `WriteDisable;
+            div_wdata = `ZeroWord;
+            div_waddr = `ZeroWord;
         end
     end
 
