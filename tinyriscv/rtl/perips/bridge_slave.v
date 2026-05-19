@@ -65,6 +65,8 @@ module bridge_slave (
 
     reg [`MemBus]                 rom_ram_data_out ;
 
+    localparam [`MemAddrBus] RAM_ADDR_BASE = 32'h1000_0000 ;
+
     always @ ( posedge clk ) begin
         if ( rst == `RstEnable ) begin
             cs <= IDLE ;
@@ -248,11 +250,11 @@ module bridge_slave (
     end
 
     assign rom_we_o   = rom_we_reg ;
-    assign rom_addr_o = addr_temp  ;
+    assign rom_addr_o = {4'b0, addr_temp[27:0]}  ;
     assign rom_data_o = data_temp  ; 
 
     assign ram_we_o   = ram_we_reg ;
-    assign ram_addr_o = addr_temp  ;
+    assign ram_addr_o = {4'b0, addr_temp[27:0]} ;
     assign ram_data_o = data_temp  ; 
 
     assign bslave_TX_data = bslave_TX_data_reg ;

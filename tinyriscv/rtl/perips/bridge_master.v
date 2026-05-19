@@ -60,6 +60,8 @@
     parameter WE_TX_DATA2    = 5'b01111 ;
     parameter WE_TX_DATA3    = 5'b10000 ;
     parameter WE_RX_RESP     = 5'b10001 ;
+    parameter WE_RESP_WAIT   = 5'b10010 ;
+    parameter RD_RESP_WAIT   = 5'b10011 ;
 
     reg [`StatusBus]        cs, ns ;
     reg [`BridgeBus]        bmaster_TX_data_reg ;
@@ -136,11 +138,14 @@
             // 写回响应
             WE_RX_RESP:begin
                 if ( bmaster_RX_data == `WE_RespCmd ) begin
-                    ns = IDLE ;
+                    ns = WE_RESP_WAIT ;
                 end
                 else begin
                     ns = WE_RX_RESP ;
                 end
+            end
+            WE_RESP_WAIT:begin
+                ns = IDLE ;
             end
 
             // 读过程：等待数据读出和数据传输
@@ -164,6 +169,9 @@
                 ns = RD_RX_DATA3;
             end
             RD_RX_DATA3:begin
+                ns = RD_RESP_WAIT;
+            end
+            RD_RESP_WAIT:begin
                 ns = IDLE;
             end
             // 默认结果

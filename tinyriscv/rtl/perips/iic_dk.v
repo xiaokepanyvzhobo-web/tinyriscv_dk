@@ -14,40 +14,12 @@
  limitations under the License.                                          
  */
 
- //`include "defines.v"
-
-`define MemBus 31:0
-`define MemAddrBus 31:0
-`define ZeroWord 32'h0
-`define RstEnable 1'b0
-`define RstDisable 1'b1
-`define WriteEnable 1'b1
-`define WriteDisable 1'b0
-`define ReadEnable 1'b1
-`define ReadDisable 1'b0 
-`define IICWrite 2'b10
-`define IICRead 2'b11
-
-// IIC 
-`define Addr_AddrReg 32'h7001_0000
-`define Addr_DataOutReg 32'h7002_0000
-`define Addr_DataInReg 32'h7003_0000
-`define CNT_HALF_PERIOD  9'd499; 
-
-`define SYS_CLK_HZ 100_000_000
-`define I2C_CLK_HZ 100_000
-`define CLK_DIVIDER (`SYS_CLK_HZ / (4 * `I2C_CLK_HZ))
-
-`define BusyEnable 1'b1
-`define BusyDisable 1'b0
-
-`define AckEnable 1'b1
-`define AckDisable 1'b0
+`include "../core/defines.v"
 
 //TODO:
 // 1. 补充SCL SDA信号的寄存器
 // 2. 复制该文件中的各种宏定义
-module iic ( 
+module iic_dk ( 
 
     input wire               clk    , 
     input wire               rst    ,
@@ -89,6 +61,23 @@ module iic (
     wire sda_in ;
     assign sda_in = SDA_i ;
 
+    wire scl_cycle_end ;
+    wire scl_8cycles_end ;
+    wire start_end ;
+    wire addr_byte_end ;
+    wire addr_byte_ack_end ;
+    wire pointer_byte_end ;
+    wire pointer_byte_ack_end ;
+    wire we_hi_byte_end ;
+    wire we_hi_byte_ack_end ;
+    wire we_lo_byte_end ;
+    wire we_lo_byte_ack_end ;
+    wire rd_hi_byte_end ;
+    wire rd_hi_byte_ack_end ;
+    wire rd_lo_byte_end ;
+    wire rd_lo_byte_ack_end ;
+    wire stop_end ;
+
     parameter IDLE              = 5'd0 ;
     parameter START             = 5'd1 ;
     parameter ADDR_BYTE         = 5'd2 ;
@@ -108,12 +97,29 @@ module iic (
 
     /////////////////////////////////////////////////////////////////////// 寄存器的行为定义 ///////////////////////////////////////////////////////////////////
     // iic_busy信号的更新逻辑
+    
+    reg iic_start ;
+
+    always @( posedge clk ) begin
+        if ( rst == `RstEnable ) begin
+            iic_start <= 1'b0 ;
+        end
+        else begin
+            if ( ( req_i == `IICWrite ) || ( req_i == `IICRead ) ) begin
+                iic_start <= 1'b1 ;
+            end
+            else begin
+                iic_start <= 1'b0 ;
+            end
+        end
+    end
+
     always @( posedge clk ) begin
         if ( rst == `RstEnable ) begin
             iic_busy <= `BusyDisable ;
         end
         else begin
-            if ( ( req_i == `IICWrite ) || ( req_i == `IICRead ) ) begin
+            if ( iic_start ) begin
                 iic_busy <= `BusyEnable ;
             end
             else if ( stop_end ) begin
@@ -315,22 +321,22 @@ module iic (
 
 
     /////////////////////////////////////////////////////////////////////// 关键控制信号定义 ///////////////////////////////////////////////////////////////////
-    wire scl_cycle_end        =   ( iic_tick ) && ( scl_phrase == 2'b11 ) ;
-    wire scl_8cycles_end      =   scl_cycle_end && ( sda_counter == 4'd7 ) ;
-    wire start_end            =   ( iic_cs == START ) && scl_cycle_end ;
-    wire addr_byte_end        =   ( iic_cs == ADDR_BYTE ) && scl_8cycles_end ;
-    wire addr_byte_ack_end    =   ( iic_cs == ADDR_BYTE_ACK ) && scl_cycle_end ;
-    wire pointer_byte_end     =   ( iic_cs == POINTER_BYTE ) && scl_8cycles_end ;
-    wire pointer_byte_ack_end =   ( iic_cs == POINTER_BYTE_ACK ) && scl_cycle_end ;
-    wire we_hi_byte_end       =   ( iic_cs == WE_HI_BYTE ) && scl_8cycles_end ;
-    wire we_hi_byte_ack_end   =   ( iic_cs == WE_HI_BYTE_ACK ) && scl_cycle_end ;
-    wire we_lo_byte_end       =   ( iic_cs == WE_LO_BYTE ) && scl_8cycles_end ;
-    wire we_lo_byte_ack_end   =   ( iic_cs == WE_LO_BYTE_ACK ) && scl_cycle_end ;
-    wire rd_hi_byte_end       =   ( iic_cs == RD_HI_BYTE ) && scl_8cycles_end ;
-    wire rd_hi_byte_ack_end   =   ( iic_cs == RD_HI_BYTE_ACK ) && scl_cycle_end ;
-    wire rd_lo_byte_end       =   ( iic_cs == RD_LO_BYTE ) && scl_8cycles_end ;
-    wire rd_lo_byte_ack_end   =   ( iic_cs == RD_LO_BYTE_ACK ) && scl_cycle_end ;
-    wire stop_end             =   ( iic_cs == STOP ) && scl_cycle_end ;
+    assign scl_cycle_end        =   ( iic_tick ) && ( scl_phrase == 2'b11 ) ;
+    assign scl_8cycles_end      =   scl_cycle_end && ( sda_counter == 4'd7 ) ;
+    assign start_end            =   ( iic_cs == START ) && scl_cycle_end ;
+    assign addr_byte_end        =   ( iic_cs == ADDR_BYTE ) && scl_8cycles_end ;
+    assign addr_byte_ack_end    =   ( iic_cs == ADDR_BYTE_ACK ) && scl_cycle_end ;
+    assign pointer_byte_end     =   ( iic_cs == POINTER_BYTE ) && scl_8cycles_end ;
+    assign pointer_byte_ack_end =   ( iic_cs == POINTER_BYTE_ACK ) && scl_cycle_end ;
+    assign we_hi_byte_end       =   ( iic_cs == WE_HI_BYTE ) && scl_8cycles_end ;
+    assign we_hi_byte_ack_end   =   ( iic_cs == WE_HI_BYTE_ACK ) && scl_cycle_end ;
+    assign we_lo_byte_end       =   ( iic_cs == WE_LO_BYTE ) && scl_8cycles_end ;
+    assign we_lo_byte_ack_end   =   ( iic_cs == WE_LO_BYTE_ACK ) && scl_cycle_end ;
+    assign rd_hi_byte_end       =   ( iic_cs == RD_HI_BYTE ) && scl_8cycles_end ;
+    assign rd_hi_byte_ack_end   =   ( iic_cs == RD_HI_BYTE_ACK ) && scl_cycle_end ;
+    assign rd_lo_byte_end       =   ( iic_cs == RD_LO_BYTE ) && scl_8cycles_end ;
+    assign rd_lo_byte_ack_end   =   ( iic_cs == RD_LO_BYTE_ACK ) && scl_cycle_end ;
+    assign stop_end             =   ( iic_cs == STOP ) && scl_cycle_end ;
     /////////////////////////////////////////////////////////////////////// 关键控制信号定义 ///////////////////////////////////////////////////////////////////
 
 

@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
-module lm75_slave_model (
+module lm75_slave_model #(
+    parameter [15:0] TEMP_REG_VALUE = 16'h1900
+) (
     input  wire       sys_clk,
     input  wire       rst_n,
     input  wire [2:0] hw_addr,
@@ -35,7 +37,7 @@ module lm75_slave_model (
     reg [15:0] reg_tos;
     reg [1:0]  ptr_reg;
 
-    wire [15:0] reg_temp = 16'h1900;
+    wire [15:0] reg_temp = TEMP_REG_VALUE;
     wire [6:0]  device_addr = {4'b1001, hw_addr};
 
     wire scl_sync = scl_sr[1];

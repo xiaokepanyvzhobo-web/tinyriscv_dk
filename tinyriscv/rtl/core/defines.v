@@ -137,6 +137,12 @@
 `define INST_CSRRSI 3'b110
 `define INST_CSRRCI 3'b111
 
+//rT inst
+`define INST_EXTEND 7'b0101111
+`define INST_SID    3'b000
+`define INST_RT     3'b001
+`define INST_IFE     3'b010
+
 // CSR reg addr
 `define CSR_CYCLE   12'hc00
 `define CSR_CYCLEH  12'hc80
@@ -149,7 +155,7 @@
 
 `define RomNum 256  // rom depth(how many words)
 
-`define MemNum 16  // memory depth(how many words)
+`define MemNum 4096  // memory depth(how many words)
 `define MemBus 31:0
 `define MemAddrBus 31:0
 
@@ -190,6 +196,19 @@
 `define Addr_AddrReg 32'h7001_0000
 `define Addr_DataOutReg 32'h7002_0000
 `define Addr_DataInReg 32'h7003_0000
+`define IICWrite 2'b10
+`define IICRead 2'b11
+
+`define SYS_CLK_HZ 100_000_000
+`define I2C_CLK_HZ 100_000
+`define CLK_DIVIDER (`SYS_CLK_HZ / (4 * `I2C_CLK_HZ))
 
 `define BusyEnable 1'b1
 `define BusyDisable 1'b0
+
+// INST_SID
+`define SID_MEM_WADDR 
+`define EXT_INST_DONE 1'b1 
+`define EXT_INST_NOT_DONE 1'b0
+
+

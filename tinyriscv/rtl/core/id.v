@@ -290,6 +290,40 @@ module id(
                     end
                 endcase
             end
+            `INST_EXTEND:begin
+                case (funct3)
+                    `INST_SID: begin // 暂定该指令需要写入寄存器，写使能开启，但是指令在输入端必须指定X0寄存器为写入
+                        reg_we_o = `WriteEnable ;
+                        reg_waddr_o = rd;
+                        reg1_raddr_o = rs1 ;
+                        reg2_raddr_o = `ZeroReg ;
+                        op1_o = reg1_rdata_i;
+                        op2_o = {{20{inst_i[31]}}, inst_i[31:20]};
+                    end
+                    `INST_RT: begin
+                        reg_we_o = `WriteEnable ;
+                        reg_waddr_o = rd;
+                        reg1_raddr_o = rs1 ;
+                        reg2_raddr_o = `ZeroReg ;
+                        op1_o = reg1_rdata_i;
+                        op2_o = {{20{inst_i[31]}}, inst_i[31:20]};
+                    end
+                    `INST_IFE: begin
+                        reg_we_o = `WriteEnable ;
+                        reg_waddr_o = rd;
+                        reg1_raddr_o = rs1 ;
+                        reg2_raddr_o = 5'b11111 ;
+                        op1_o = reg1_rdata_i;
+                        op2_o = reg2_rdata_i;
+                    end
+                    default: begin
+                        reg1_raddr_o = `ZeroReg;
+                        reg2_raddr_o = `ZeroReg;
+                        reg_we_o = `WriteDisable;
+                        reg_waddr_o = `ZeroReg;
+                    end
+                endcase
+            end
             default: begin
                 reg_we_o = `WriteDisable;
                 reg_waddr_o = `ZeroReg;

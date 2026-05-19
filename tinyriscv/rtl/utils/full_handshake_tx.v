@@ -48,6 +48,9 @@ module full_handshake_tx #(
 
     reg[2:0] state;
     reg[2:0] state_next;
+    
+    reg ack_d;
+    reg ack;
 
     always @ (posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -88,8 +91,6 @@ module full_handshake_tx #(
         endcase
     end
 
-    reg ack_d;
-    reg ack;
 
     // 将应答信号打两拍进行同步
     always @ (posedge clk or negedge rst_n) begin

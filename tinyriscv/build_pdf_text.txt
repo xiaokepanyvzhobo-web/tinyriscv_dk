@@ -1,0 +1,211 @@
+RISC-V
+
+RISC-Vtinyriscv (https://gitee.com/liangkangnan/tinyriscv/tree/master)
+
+1. tinyriscv
+
+     
+2. FPGA
+
+     
+3. 
+
+     DRCLVS cleangds
+4. 
+
+*FPGA
+*IO RingIOchip_sel
+
+
+
+  n Tinyriscv 
+  n 
+  n FPGA 
+  n Vivado 
+  n FPGA 
+Tinyriscv0-
+
+
+
+·  TinyriscvTimerSPIGPIO
+·  uart_debug  packet 131 132d x 8w 
+
+     uart_debug  packet 35 35d x 8w 
+Tinyriscv1-ROMRAM
+
+ROMRAMFPGA
+
+                                                · ROMRAM ROM RAM
+                                                · 
+
+                                                    ROM/RAM  8  8 
+                                                     FPGA 
+                                                ·  FPGA 
+                                                ·  ROM  ROM  4096d x 32w
+                                                     256d x 32w
+                                                ·  RAM  RAM  4096d x 32w
+                                                     16d x 32w
+Tinyriscv2-PWM
+
+      
+
+0x7000_0000  PWM  PWM(R/W)
+0x6000_0000
+                                                  
+                  0x6000_0000 A0  0x6010_0000 B0  · 4
+                  0x6001_0000 A1  0x6011_0000 B1  · 4
+                  0x6002_0000 A2  0x6012_0000 B2
+                  0x6003_0000 A3  0x6013_0000 B3      
+                                                  · C[3:0]4
+                  0x6004_0000 C
+                                                      C[0]10
+                                                      0
+Tinyriscv3-I2C
+
+      
+
+0x8000_0000   I2C
+0x7000_0000  PWM
+0x6000_0000
+
+                                 I2C  
+                                      · I2C
+                   0x7001_0000 
+                   0x7002_0000 I2C
+                   0x7003_0000 I2C
+Tinyriscv4-0-Send ID
+
+31             20 19            15 14          12 11      76          0
+
+    Imm[11:0]         rs1              funct3         rd      opcode
+
+               Inst Opcode funct3 
+
+               sID 0101111 0x0  uart
+                                ASCII2022123456
+                                 0x32 0x30 0x32 0x32 0x31 0x32 0x33 0x34 0x35
+                                0x36
+Tinyriscv5-1-Read Temperature
+
+31             20 19           15 14          12 11      76          0
+
+    Imm[11:0]         rs1             funct3         rd      opcode
+
+               Inst Opcode funct3 
+
+               rT 0101111 0x1  I2CFPGA
+                               LM75x[rd] 
+
+LM75                                          8
+Tinyriscv6-2-Integrated&Fire
+
+31             20 19       15 14          12 11      76                                  0
+
+    Imm[11:0]         rs1         funct3         rd      opcode
+
+               Inst Opcode funct3 
+
+               if 0101111 0x2 if (Imm==0) {
+                                                   if (x[rs1] >= x31*) {
+                                                     Uartx[rs1][7:0]
+                                                     x[rd] = 0;
+                                                   } else {
+                                                     x[rd] = x[rs1];
+                                                   }
+
+                                                } else {
+                                                   x[rd] = x[rs1] + sign_ext(imm[11:0])
+
+                                                }
+
+               * x31riscv32
+
+
+  n Tinyriscv 
+  n 
+  n FPGA 
+  n Vivado 
+  n FPGA 
+
+
+· FPGA5FPGAFPGA
+   
+
+· ASIC78GDSTSMC
+· ASIC1112
+
+
+  n Tinyriscv 
+  n 
+  n FPGA 
+  n Vivado 
+  n FPGA 
+FPGA https://cloud.tsinghua.edu.cn/d/8a852c44b6a
+
+ 1. 2483a936e/ FPGA
+     Baisc_Inst_Example
+
+ 2. Extend_Inst_Example 
+ 3. Other_Example 
+
+                                                  riscvPWMLED
+
+
+  n Tinyriscv 
+  n 
+  n FPGA 
+  n Vivado 
+  n FPGA 
+Vivado
+
+https://www.xilinx.com/support/download.html
+Vivado
+
+https://www.xilinx.com/support/download.html
+Vivado
+Vivado
+
+
+  n Tinyriscv 
+  n 
+  n FPGA 
+  n Vivado 
+  n FPGA 
+FPGA - 
+FPGA ­ 
+
+         · FPGA
+           xc7a35tfgg484-2
+FPGA ­                                                     FPGA
+                                                    CLK
+                                                  
+                                                                 
+
+set_property IOSTANDARD LVCMOS33 [get_ports clk]            
+set_property PACKAGE_PIN Y18 [get_ports clk]      clkY18
+FPGA ­ 
+
+FPGA
+
+                                                                               
+                                                                               https://cloud.tsinghua.edu.cn/f/d8313c0a2
+                                                                               7774a818d98/
+FPGA 
+
+https://pan.baidu.com/s/1eyfsU-5ID1B4Ob5LeYnsMw vtq0
+
+                                                                  · 
+                                                                  · 
+                                                                  · FPGA
+
+                                                                    
+
+
+· RISC-Vtinyriscv (https://gitee.com/liangkangnan/tinyriscv/tree/master)
+· https://cloud.tsinghua.edu.cn/d/8a852c44b6a2483a936e/
+· FPGA https://pan.baidu.com/s/1eyfsU-5ID1B4Ob5LeYnsMw vtq0
+· Xilinx Vivadohttps://www.xilinx.com/support/download.html
+· https://www.silabs.com/software-and-tools/usb-to-uart-bridge-vcp-
+
+   drivers?tab=downloads 
+

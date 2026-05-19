@@ -20,6 +20,7 @@
 // 纯组合逻辑电路
 module ex(
 
+    input wire clk,
     input wire rst,
 
     // from id
@@ -41,6 +42,9 @@ module ex(
 
     // from mem
     input wire[`MemBus] mem_rdata_i,        // 内存输入数据
+    input wire mem_ack_i,
+
+    input wire ext_inst_start_i,
 
     // from div
     input wire div_ready_i,                 // 除法运算完成标志
@@ -54,6 +58,7 @@ module ex(
     output reg[`MemAddrBus] mem_waddr_o,    // 写内存地址
     output wire mem_we_o,                   // 是否要写内存
     output wire mem_req_o,                  // 请求访问内存标志
+    output wire mem_no_ack_o,               // 普通load/store访问非bridge设备时无需等待ack
 
     // to regs
     output wire[`RegBus] reg_wdata_o,       // 写寄存器数据
@@ -73,6 +78,8 @@ module ex(
     output reg[`RegAddrBus] div_reg_waddr_o,// 除法运算结束后要写的寄存器地址
 
     // to ctrl
+    output wire ext_inst_done_o,
+    output wire ife_use_uart_o,
     output wire hold_flag_o,                // 是否暂停标志
     output wire jump_flag_o,                // 是否跳转标志
     output wire[`InstAddrBus] jump_addr_o   // 跳转目的地址
@@ -117,18 +124,74 @@ module ex(
     reg mem_req;
     reg div_start;
 
+    localparam [`MemAddrBus] SID_UART_CTRL_ADDR   = 32'h3000_0000 ;
+    localparam [`MemAddrBus] SID_UART_STATUS_ADDR = 32'h3000_0004 ;
+    localparam [`MemAddrBus] SID_UART_TXDATA_ADDR = 32'h3000_000c ;
+    localparam [`MemAddrBus] IIC_ADDR_REG_ADDR    = 32'h7001_0000 ;
+    localparam [`MemAddrBus] IIC_DATAOUT_REG_ADDR = 32'h7002_0000 ;
+    localparam [`MemAddrBus] IIC_DATAIN_REG_ADDR  = 32'h7002_0000 ;
+    localparam [`MemAddrBus] IIC_LM75_ADDR        = 32'h0000_0093 ; // TODO: 需要进行修改和完善
+
+    localparam [2:0] SID_IDLE        = 3'd0;
+    localparam [2:0] SID_CTRL_WRITE  = 3'd1;
+    localparam [2:0] SID_DATA_WRITE  = 3'd2;
+    localparam [2:0] SID_STATUS_READ = 3'd3;
+    localparam [2:0] SID_DONE        = 3'd4;
+
+    reg[2:0] sid_state;
+    reg[3:0] sid_index;
+    wire is_sid_inst;
+    wire is_ife_inst;
+    wire is_rt_inst;
+    wire ife_imm_is_zero;
+    wire ife_uart_active;
+    wire[31:0] ife_imm_ext;
+    wire[7:0] uart_tx_data;
+    wire ext_isd_ife_inst_done;
+    wire ext_rt_inst_done;
+
+    function [3:0] sid_number_lsb;
+        input [3:0] index;
+        begin
+            case (index)
+                4'd0: sid_number_lsb = 4'h2;
+                4'd1: sid_number_lsb = 4'h0;
+                4'd2: sid_number_lsb = 4'h2;
+                4'd3: sid_number_lsb = 4'h5;
+                4'd4: sid_number_lsb = 4'h2;
+                4'd5: sid_number_lsb = 4'h1;
+                4'd6: sid_number_lsb = 4'h0;
+                4'd7: sid_number_lsb = 4'h9;
+                4'd8: sid_number_lsb = 4'h0;
+                4'd9: sid_number_lsb = 4'h5;
+                default: sid_number_lsb = 4'h0;
+            endcase
+        end
+    endfunction
+
     assign opcode = inst_i[6:0];
     assign funct3 = inst_i[14:12];
     assign funct7 = inst_i[31:25];
     assign rd = inst_i[11:7];
     assign uimm = inst_i[19:15];
+    assign is_sid_inst = (opcode == `INST_EXTEND) && (funct3 == `INST_SID);
+    assign is_ife_inst = (opcode == `INST_EXTEND) && (funct3 == `INST_IFE);
+    assign is_rt_inst = (opcode == `INST_EXTEND) && (funct3 == `INST_RT);
+    assign ife_imm_is_zero = (inst_i[31:20] == 12'd0);
+    assign ife_imm_ext = {{20{inst_i[31]}}, inst_i[31:20]};
+    assign ife_use_uart_o = is_ife_inst && ife_imm_is_zero && op1_ge_op2_unsigned;
+    assign ife_uart_active = is_ife_inst && ife_use_uart_o;
+    assign uart_tx_data = is_sid_inst ? {4'h3, sid_number_lsb(sid_index)} : op1_i[7:0];
+    assign ext_isd_ife_inst_done = (sid_state == SID_DONE) ? `EXT_INST_DONE : `EXT_INST_NOT_DONE;  //逻辑待补充
+    assign ext_rt_inst_done = is_rt_inst && mem_ack_i ;
+    assign ext_inst_done_o = ext_isd_ife_inst_done || ext_rt_inst_done ;
 
     assign sr_shift = reg1_rdata_i >> reg2_rdata_i[4:0];
     assign sri_shift = reg1_rdata_i >> inst_i[24:20];
     assign sr_shift_mask = 32'hffffffff >> reg2_rdata_i[4:0];
     assign sri_shift_mask = 32'hffffffff >> inst_i[24:20];
 
-    assign op1_add_op2_res = op1_i + op2_i;
+    assign op1_add_op2_res = is_ife_inst ? ( op1_i + {{20{inst_i[31]}}, inst_i[31:20]} ) : ( op1_i + op2_i );
     assign op1_jump_add_op2_jump_res = op1_jump_i + op2_jump_i;
 
     assign reg1_data_invert = ~reg1_rdata_i + 1;
@@ -145,6 +208,56 @@ module ex(
 
     assign mem_raddr_index = (reg1_rdata_i + {{20{inst_i[31]}}, inst_i[31:20]}) & 2'b11;
     assign mem_waddr_index = (reg1_rdata_i + {{20{inst_i[31]}}, inst_i[31:25], inst_i[11:7]}) & 2'b11;
+    assign mem_no_ack_o = ((opcode == `INST_TYPE_L) &&
+                           (mem_raddr_o[31:28] != 4'h0) &&
+                           (mem_raddr_o[31:28] != 4'h1)) ||
+                          ((opcode == `INST_TYPE_S) &&
+                           (mem_waddr_o[31:28] != 4'h0) &&
+                           (mem_waddr_o[31:28] != 4'h1));
+
+    always @(posedge clk) begin
+        if (rst == `RstEnable) begin
+            sid_state <= SID_IDLE;
+            sid_index <= 4'd0;
+        end else begin
+            case (sid_state)
+                SID_IDLE: begin
+                    sid_index <= 4'd0;
+                    if ((ext_inst_start_i == `True) && (is_sid_inst || ife_uart_active)) begin
+                        sid_state <= SID_CTRL_WRITE;
+                    end else begin
+                        sid_state <= SID_IDLE;
+                    end
+                end
+                SID_CTRL_WRITE: begin
+                    sid_state <= SID_DATA_WRITE;
+                end
+                SID_DATA_WRITE: begin
+                    sid_state <= SID_STATUS_READ;
+                end
+                SID_STATUS_READ: begin
+                    if (mem_rdata_i[0] == 1'b0) begin
+                        if (ife_uart_active || (sid_index == 4'd9)) begin
+                            sid_state <= SID_DONE;
+                        end else begin
+                            sid_index <= sid_index + 1'b1;
+                            sid_state <= SID_DATA_WRITE;
+                        end
+                    end else begin
+                        sid_state <= SID_STATUS_READ;
+                    end
+                end
+                SID_DONE: begin
+                    sid_state <= SID_IDLE;
+                    sid_index <= 4'd0;
+                end
+                default: begin
+                    sid_state <= SID_IDLE;
+                    sid_index <= 4'd0;
+                end
+            endcase
+        end
+    end
 
     assign div_start_o = (int_assert_i == `INT_ASSERT)? `DivStop: div_start;
 
@@ -854,6 +967,80 @@ module ex(
                         mem_raddr_o = `ZeroWord;
                         mem_waddr_o = `ZeroWord;
                         mem_we = `WriteDisable;
+                        reg_wdata = `ZeroWord;
+                    end
+                endcase
+            end
+            `INST_EXTEND: begin
+                jump_flag = `JumpDisable;
+                hold_flag = `HoldDisable;
+                jump_addr = `ZeroWord;
+                mem_wdata_o = `ZeroWord;
+                mem_raddr_o = `ZeroWord;
+                mem_waddr_o = `ZeroWord;
+                mem_we = `WriteDisable;
+                reg_we = `WriteDisable;
+                reg_wdata = `ZeroWord;
+                case ( funct3 )
+                    `INST_SID: begin
+                        // J型指令或者B型指令的跳转信息
+                        jump_flag = `JumpDisable ;
+                        jump_addr = `ZeroWord ;
+                        // 流水线的hold信号
+                        hold_flag = `HoldDisable ;
+                        // 目的寄存器的写入数据，暂时定为0
+                        reg_wdata = `ZeroWord ;
+                        // 对于外设的写入信息
+                        reg_we = `WriteDisable;
+                        mem_we = ((sid_state == SID_CTRL_WRITE) || (sid_state == SID_DATA_WRITE)) ? `WriteEnable : `WriteDisable;
+                        mem_req = ((sid_state == SID_CTRL_WRITE) || (sid_state == SID_DATA_WRITE) || (sid_state == SID_STATUS_READ)) ? `RIB_REQ : `RIB_NREQ;
+                        mem_waddr_o = (sid_state == SID_CTRL_WRITE) ? SID_UART_CTRL_ADDR : SID_UART_TXDATA_ADDR;
+                        mem_raddr_o = SID_UART_STATUS_ADDR;
+                        mem_wdata_o = (sid_state == SID_CTRL_WRITE) ? 32'h1 :
+                                      ((sid_state == SID_DATA_WRITE) ? {24'h0, 4'h3, sid_number_lsb(sid_index)} : `ZeroWord);
+                    end
+                    `INST_RT: begin
+                        // J型指令或者B型指令的跳转信息
+                        jump_flag = `JumpDisable ;
+                        jump_addr = `ZeroWord ;
+                        // 流水线的hold信号
+                        hold_flag = `HoldDisable ;
+                        // 目的寄存器的写入数据，暂时定为0
+                        reg_wdata = { 24'd0, mem_rdata_i[14:7] } ;
+                        // 对于外设的写入信息
+                        reg_we = `WriteEnable;
+                        mem_we = `WriteEnable ;
+                        mem_req = `RIB_REQ ;
+                        mem_waddr_o = IIC_ADDR_REG_ADDR ;
+                        mem_raddr_o = IIC_DATAOUT_REG_ADDR ; 
+                        mem_wdata_o = IIC_LM75_ADDR ;
+                    end
+                    `INST_IFE:begin
+                        // J型指令或者B型指令的跳转信息
+                        jump_flag = `JumpDisable ;
+                        jump_addr = `ZeroWord ;
+                        // 流水线的hold信号
+                        hold_flag = `HoldDisable ;
+                        // 目的寄存器的写入数据，暂时定为0
+                        reg_we = `WriteEnable;
+                        reg_wdata = ife_imm_is_zero ? (op1_ge_op2_unsigned ? `ZeroWord : op1_i) :
+                                                       (op1_i + ife_imm_ext);
+                        mem_we = ((sid_state == SID_CTRL_WRITE) || (sid_state == SID_DATA_WRITE)) ? `WriteEnable : `WriteDisable;
+                        mem_req = ((sid_state == SID_CTRL_WRITE) || (sid_state == SID_DATA_WRITE) || (sid_state == SID_STATUS_READ)) ? `RIB_REQ : `RIB_NREQ;
+                        mem_waddr_o = (sid_state == SID_CTRL_WRITE) ? SID_UART_CTRL_ADDR : SID_UART_TXDATA_ADDR;
+                        mem_raddr_o = SID_UART_STATUS_ADDR;
+                        mem_wdata_o = (sid_state == SID_CTRL_WRITE) ? 32'h1 :
+                                      ((sid_state == SID_DATA_WRITE) ? {24'h0, uart_tx_data} : `ZeroWord);
+                    end
+                    default : begin
+                        jump_flag = `JumpDisable;
+                        hold_flag = `HoldDisable;
+                        jump_addr = `ZeroWord;
+                        mem_wdata_o = `ZeroWord;
+                        mem_raddr_o = `ZeroWord;
+                        mem_waddr_o = `ZeroWord;
+                        mem_we = `WriteDisable;
+                        reg_we = `WriteDisable;
                         reg_wdata = `ZeroWord;
                     end
                 endcase

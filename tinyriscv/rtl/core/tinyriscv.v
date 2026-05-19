@@ -94,6 +94,7 @@ module tinyriscv(
     wire[`MemAddrBus] ex_mem_waddr_o;
     wire ex_mem_we_o;
     wire ex_mem_req_o;
+    wire ex_mem_no_ack_o;
     wire[`RegBus] ex_reg_wdata_o;
     wire ex_reg_we_o;
     wire[`RegAddrBus] ex_reg_waddr_o;
@@ -130,6 +131,9 @@ module tinyriscv(
     wire div_start_gate_o;
     wire mem_use_latched_o;
     wire [3:0] ctrl_state_o;
+    wire ext_inst_done_o;
+    wire ext_inst_start_o;
+    wire ex_ife_use_uart_o;
 
     // div模块输出信号
     wire[`RegBus] div_result_o;
@@ -211,7 +215,12 @@ module tinyriscv(
     .inst_at_ex_i    (ie_inst_o),       // ID/EX 的 inst_o
     .jump_flag_i     (ex_jump_flag_o),
     .jump_addr_i     (ex_jump_addr_o),
+    .ext_mem_req_i   (ex_mem_req_o),
+    .ext_mem_we_i    (ex_mem_we_o),
+    .mem_no_ack_i    (ex_mem_no_ack_o),
     .hold_flag_ex_i  (ex_hold_flag_o),
+    .ife_use_uart    (ex_ife_use_uart_o),
+    .ext_inst_done   (ext_inst_done_o),
     .hold_flag_rib_i (rib_hold_flag_i),
     .if_ack_i        (rib_pc_ack_i),       // 来自桥接
     .mem_ack_i       (rib_ex_ack_i),       // 来自桥接 
@@ -229,6 +238,7 @@ module tinyriscv(
     .mem_we_o        (rib_ex_we_o),
     .reg_we_gate_o   (reg_we_gate_o),  // need to check
     .div_start_gate_o(div_start_gate_o), // need to check
+    .ext_inst_start_o(ext_inst_start_o),
     .mem_rdata_use_latched_o(mem_use_latched_o), // need to fix
     .state_o         (ctrl_state_o)  // open
 );
@@ -346,6 +356,7 @@ module tinyriscv(
 
     // ex模块例化
     ex u_ex(
+        .clk(clk),
         .rst(rst),
         .inst_i(ie_inst_o),
         .inst_addr_i(ie_inst_addr_o),
@@ -358,17 +369,22 @@ module tinyriscv(
         .op1_jump_i(ie_op1_jump_o),
         .op2_jump_i(ie_op2_jump_o),
         .mem_rdata_i(ex_mem_rdata_in),
+        .ext_inst_start_i(ext_inst_start_o),
         .mem_wdata_o(ex_mem_wdata_o),
         .mem_raddr_o(ex_mem_raddr_o),
+        .mem_ack_i(rib_ex_ack_i),
         .mem_waddr_o(ex_mem_waddr_o),
         .mem_we_o(ex_mem_we_o),
         .mem_req_o(ex_mem_req_o),
+        .mem_no_ack_o(ex_mem_no_ack_o),
         .reg_wdata_o(ex_reg_wdata_o),
         .reg_we_o(ex_reg_we_o),
         .reg_waddr_o(ex_reg_waddr_o),
         .hold_flag_o(ex_hold_flag_o),
         .jump_flag_o(ex_jump_flag_o),
         .jump_addr_o(ex_jump_addr_o),
+        .ext_inst_done_o(ext_inst_done_o),
+        .ife_use_uart_o(ex_ife_use_uart_o),
         .int_assert_i(clint_int_assert_o),
         .int_addr_i(clint_int_addr_o),
         .div_ready_i(div_ready_o),

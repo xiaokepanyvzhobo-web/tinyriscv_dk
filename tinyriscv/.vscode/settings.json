@@ -1,0 +1,4 @@
+{
+  "verilog.linting.linter": "iverilog",
+  "verilog.linting.iverilog.arguments": "-g2012 -Wall -I rtl/soc -I rtl/core -I rtl/perips -I rtl/utils -I rtl/debug -I rtl/iverilog_lint -y rtl/soc -y rtl/core -y rtl/perips -y rtl/utils -y rtl/debug -y rtl/iverilog_lint -Y .vlint"
+}

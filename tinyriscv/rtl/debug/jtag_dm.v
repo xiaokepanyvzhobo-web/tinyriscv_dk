@@ -121,6 +121,7 @@ module jtag_dm #(
     reg need_resp;
     reg is_read_reg;
     wire rx_valid;
+    wire tx_idle;
     wire[DTM_REQ_BITS-1:0] rx_data;
 
     wire[31:0] sbaddress0_next = sbaddress0 + 4;

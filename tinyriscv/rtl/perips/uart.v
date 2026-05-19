@@ -98,7 +98,7 @@ module uart(
     // 写寄存器
     always @ (posedge clk) begin
         if (rst == 1'b0) begin
-            uart_ctrl <= 32'h0;
+            uart_ctrl <= 32'h0;    // 0x0003 变化到0x0000
             uart_status <= 32'h0;
             uart_rx <= 32'h0;
             uart_baud <= BAUD_115200;
@@ -169,7 +169,7 @@ module uart(
         if (rst == 1'b0) begin
             state <= S_IDLE;
             cycle_cnt <= 16'd0;
-            tx_reg <= 1'b0;
+            tx_reg <= 1'b1; // 修改此处，将低电平改为高电平
             bit_cnt <= 4'd0;
             tx_data_ready <= 1'b0;
         end else begin

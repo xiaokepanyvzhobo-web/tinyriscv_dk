@@ -1,81 +1,47 @@
-# 时钟约束50MHz
-set_property -dict { PACKAGE_PIN N14 IOSTANDARD LVCMOS33 } [get_ports {clk}]; 
+# 鏃堕挓绾︽潫50MHz
+set_property -dict { PACKAGE_PIN Y18 IOSTANDARD LVCMOS33 } [get_ports {clk}]; 
 create_clock -add -name sys_clk_pin -period 20.00 -waveform {0 10} [get_ports {clk}];
 
-# 时钟引脚
+# 鏃堕挓寮曡剼
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
-set_property PACKAGE_PIN N14 [get_ports clk]
+set_property PACKAGE_PIN Y18 [get_ports clk]
 
-# 复位引脚
+# 澶嶄綅寮曡剼
 set_property IOSTANDARD LVCMOS33 [get_ports rst]
-set_property PACKAGE_PIN L13 [get_ports rst]
+set_property PACKAGE_PIN F20 [get_ports rst]
 
-# 程序执行完毕指示引脚
-set_property IOSTANDARD LVCMOS33 [get_ports over]
-set_property PACKAGE_PIN M16 [get_ports over]
-
-# 程序执行成功指示引脚
+# 绋嬪簭鎵ц鎴愬姛鎸囩ず寮曡剼
 set_property IOSTANDARD LVCMOS33 [get_ports succ]
-set_property PACKAGE_PIN N16 [get_ports succ]
+set_property PACKAGE_PIN F19 [get_ports succ]
 
-# CPU停住指示引脚
-set_property IOSTANDARD LVCMOS33 [get_ports halted_ind]
-set_property PACKAGE_PIN P15 [get_ports halted_ind]
-
-# 串口下载使能引脚
-set_property IOSTANDARD LVCMOS33 [get_ports uart_debug_pin]
-set_property PACKAGE_PIN K13 [get_ports uart_debug_pin]
-
-# 串口发送引脚
+# 涓插彛鍙戦?佸紩鑴?
 set_property IOSTANDARD LVCMOS33 [get_ports uart_tx_pin]
-set_property PACKAGE_PIN M6 [get_ports uart_tx_pin]
+set_property PACKAGE_PIN G16 [get_ports uart_tx_pin]
 
-# 串口接收引脚
+# 涓插彛鎺ユ敹寮曡剼
 set_property IOSTANDARD LVCMOS33 [get_ports uart_rx_pin]
-set_property PACKAGE_PIN N6 [get_ports uart_rx_pin]
+set_property PACKAGE_PIN G15 [get_ports uart_rx_pin]
 
-# GPIO0引脚
-set_property IOSTANDARD LVCMOS33 [get_ports {gpio[0]}]
-set_property PACKAGE_PIN P16 [get_ports {gpio[0]}]
+# PWM 寮曡剼
+# set_property IOSTANDARD LVCMOS33 [get_ports PWM_o[0]]
+# set_property PACKAGE_PIN E21 [get_ports PWM_o[0]]
 
-# GPIO1引脚
-set_property IOSTANDARD LVCMOS33 [get_ports {gpio[1]}]
-set_property PACKAGE_PIN T15 [get_ports {gpio[1]}]
+# set_property IOSTANDARD LVCMOS33 [get_ports PWM_o[1]]
+# set_property PACKAGE_PIN D20 [get_ports PWM_o[1]]
 
-# JTAG TCK引脚
-set_property IOSTANDARD LVCMOS33 [get_ports jtag_TCK]
-set_property PACKAGE_PIN N11 [get_ports jtag_TCK]
+# set_property IOSTANDARD LVCMOS33 [get_ports PWM_o[2]]
+# set_property PACKAGE_PIN C20 [get_ports PWM_o[2]]
 
-#create_clock -name jtag_clk_pin -period 300 [get_ports {jtag_TCK}];
+# I2C 寮曡剼
+set_property IOSTANDARD LVCMOS33 [get_ports io_scl]
+set_property PACKAGE_PIN M22 [get_ports io_scl]
 
-# JTAG TMS引脚
-set_property IOSTANDARD LVCMOS33 [get_ports jtag_TMS]
-set_property PACKAGE_PIN N3 [get_ports jtag_TMS]
+set_property IOSTANDARD LVCMOS33 [get_ports io_sda]
+set_property PACKAGE_PIN N22 [get_ports io_sda]
 
-# JTAG TDI引脚
-set_property IOSTANDARD LVCMOS33 [get_ports jtag_TDI]
-set_property PACKAGE_PIN N2 [get_ports jtag_TDI]
+set_property PULLUP true [get_ports sda]
+set_property PULLUP true [get_ports scl]
 
-# JTAG TDO引脚
-set_property IOSTANDARD LVCMOS33 [get_ports jtag_TDO]
-set_property PACKAGE_PIN M1 [get_ports jtag_TDO]
-
-# SPI MISO引脚
-set_property IOSTANDARD LVCMOS33 [get_ports spi_miso]
-set_property PACKAGE_PIN P1 [get_ports spi_miso]
-
-# SPI MOSI引脚
-set_property IOSTANDARD LVCMOS33 [get_ports spi_mosi]
-set_property PACKAGE_PIN N1 [get_ports spi_mosi]
-
-# SPI SS引脚
-set_property IOSTANDARD LVCMOS33 [get_ports spi_ss]
-set_property PACKAGE_PIN M5 [get_ports spi_ss]
-
-# SPI CLK引脚
-set_property IOSTANDARD LVCMOS33 [get_ports spi_clk]
-set_property PACKAGE_PIN N4 [get_ports spi_clk]
-
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]  
-set_property CONFIG_MODE SPIx4 [current_design] 
-set_property BITSTREAM.CONFIG.CONFIGRATE 50 [current_design]
+# Debug 寮曡剼
+set_property IOSTANDARD LVCMOS33 [get_ports uart_debug_pin]
+set_property PACKAGE_PIN M13 [get_ports uart_debug_pin]

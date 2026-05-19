@@ -100,10 +100,12 @@ module rib(
     output reg s6_we_o,                    // 从设备6写标志
 
     // slave 7 interface
+    output reg s7_req_o,
     output reg[`MemAddrBus] s7_addr_o,     // 从设备7读、写地址
     output reg[`MemBus] s7_data_o,         // 从设备7写数据
     input wire[`MemBus] s7_data_i,         // 从设备7读取到的数据
     output reg s7_we_o,                    // 从设备7写标志
+    input wire s7_ack_i,
 
     output reg hold_flag_o                 // 暂停流水线标志
 
@@ -189,6 +191,7 @@ module rib(
         s7_we_o = `WriteDisable;
 
         s0_req_o = `RIB_NREQ;
+        s7_req_o = `RIB_NREQ;
         
 
         case (grant)
@@ -197,7 +200,7 @@ module rib(
                     slave_0: begin
                         s0_we_o = m0_we_i;
                         s0_req_o = m0_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m0_addr_i[27:0]}};
+                        s0_addr_o = m0_addr_i;
                         s0_data_o = m0_data_i;
                         m0_data_o = s0_data_i;
                         m0_ack_o = s0_ack_i; // --liudk 2026-05-13
@@ -205,7 +208,7 @@ module rib(
                     slave_1: begin
                         s0_we_o = m0_we_i;
                         s0_req_o = m0_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m0_addr_i[27:0]}};
+                        s0_addr_o = m0_addr_i;
                         s0_data_o = m0_data_i;
                         m0_data_o = s0_data_i;
                         m0_ack_o = s0_ack_i; // --liudk 2026-05-13
@@ -242,9 +245,11 @@ module rib(
                     end
                     slave_7: begin
                         s7_we_o = m0_we_i;
+                        s7_req_o = m0_req_i ;
                         s7_addr_o = {{4'h0}, {m0_addr_i[27:0]}};
                         s7_data_o = m0_data_i;
                         m0_data_o = s7_data_i;
+                        m0_ack_o = s7_ack_i;
                     end
                     default: begin
 
@@ -256,7 +261,7 @@ module rib(
                     slave_0: begin
                         s0_we_o = m1_we_i;
                         s0_req_o = m1_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m1_addr_i[27:0]}};
+                        s0_addr_o = m1_addr_i;
                         s0_data_o = m1_data_i;
                         m1_data_o = s0_data_i;
                         m1_ack_o  = s0_ack_i;
@@ -264,7 +269,7 @@ module rib(
                     slave_1: begin
                         s0_we_o = m1_we_i;
                         s0_req_o = m1_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m1_addr_i[27:0]}};
+                        s0_addr_o = m1_addr_i;
                         s0_data_o = m1_data_i;
                         m1_data_o = s0_data_i;
                         m1_ack_o  = s0_ack_i;
@@ -301,9 +306,11 @@ module rib(
                     end
                     slave_7: begin
                         s7_we_o = m1_we_i;
+                        s7_req_o = m1_req_i ;
                         s7_addr_o = {{4'h0}, {m1_addr_i[27:0]}};
                         s7_data_o = m1_data_i;
                         m1_data_o = s7_data_i;
+                        m1_ack_o = s7_ack_i;
                     end
                     default: begin
 
@@ -315,14 +322,14 @@ module rib(
                     slave_0: begin
                         s0_we_o = m2_we_i;
                         s0_req_o = m2_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m2_addr_i[27:0]}};
+                        s0_addr_o = m2_addr_i;
                         s0_data_o = m2_data_i;
                         m2_data_o = s0_data_i;
                     end
                     slave_1: begin
                         s0_we_o = m2_we_i;
                         s0_req_o = m2_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m2_addr_i[27:0]}};
+                        s0_addr_o = m2_addr_i;
                         s0_data_o = m2_data_i;
                         m2_data_o = s0_data_i;
                     end
@@ -358,6 +365,7 @@ module rib(
                     end
                     slave_7: begin
                         s7_we_o = m2_we_i;
+                        s7_req_o = m2_req_i ;
                         s7_addr_o = {{4'h0}, {m2_addr_i[27:0]}};
                         s7_data_o = m2_data_i;
                         m2_data_o = s7_data_i;
@@ -372,7 +380,7 @@ module rib(
                     slave_0: begin
                         s0_we_o = m3_we_i;
                         s0_req_o = m3_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m3_addr_i[27:0]}};
+                        s0_addr_o = m3_addr_i;
                         s0_data_o = m3_data_i;
                         m3_data_o = s0_data_i;
                         m3_ack_o = s0_ack_i; // --liudk 2026-05-13
@@ -380,7 +388,7 @@ module rib(
                     slave_1: begin
                         s0_we_o = m3_we_i;
                         s0_req_o = m3_req_i; // --liudk 2026-05-05
-                        s0_addr_o = {{4'h0}, {m3_addr_i[27:0]}};
+                        s0_addr_o = m3_addr_i;
                         s0_data_o = m3_data_i;
                         m3_data_o = s0_data_i;
                         m3_ack_o = s0_ack_i; // --liudk 2026-05-13
@@ -417,9 +425,11 @@ module rib(
                     end
                     slave_7: begin
                         s7_we_o = m3_we_i;
+                        s7_req_o = m3_req_i;
                         s7_addr_o = {{4'h0}, {m3_addr_i[27:0]}};
                         s7_data_o = m3_data_i;
                         m3_data_o = s7_data_i;
+                        m3_ack_o = s7_ack_i;
                     end
                     default: begin
 
