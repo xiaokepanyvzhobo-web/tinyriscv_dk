@@ -129,8 +129,8 @@ module ex(
     localparam [`MemAddrBus] SID_UART_TXDATA_ADDR = 32'h3000_000c ;
     localparam [`MemAddrBus] IIC_ADDR_REG_ADDR    = 32'h7001_0000 ;
     localparam [`MemAddrBus] IIC_DATAOUT_REG_ADDR = 32'h7002_0000 ;
-    localparam [`MemAddrBus] IIC_DATAIN_REG_ADDR  = 32'h7002_0000 ;
-    localparam [`MemAddrBus] IIC_LM75_ADDR        = 32'h0000_0093 ; // TODO: 需要进行修改和完善
+    localparam [`MemAddrBus] IIC_DATAIN_REG_ADDR  = 32'h7003_0000 ;
+    localparam [`MemAddrBus] IIC_LM75_ADDR        = 32'h0000_0091 ; // TODO: 需要进行修改和完善
 
     localparam [2:0] SID_IDLE        = 3'd0;
     localparam [2:0] SID_CTRL_WRITE  = 3'd1;

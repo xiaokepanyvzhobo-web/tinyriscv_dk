@@ -554,7 +554,7 @@ module Temp_tb;
     ) u_lm75_slave (
         .sys_clk (clk),
         .rst_n   (rst),
-        .hw_addr (3'b001),
+        .hw_addr (3'b000),
         .scl_i   (io_scl),
         .sda_i   (io_sda),
         .sda_o   (slave_sda_o),

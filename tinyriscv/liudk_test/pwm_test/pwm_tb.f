@@ -40,5 +40,4 @@ $DESIGN_PATH/rtl/utils/full_handshake_tx.v
 $DESIGN_PATH/rtl/utils/gen_buf.v
 $DESIGN_PATH/rtl/utils/gen_dff.v
 
-$DESIGN_PATH/liudk_test/IIC_test/iic_slave.v
-$DESIGN_PATH/liudk_test/temp_test/Temp_tb.v
+$DESIGN_PATH/liudk_test/pwm_test/pwm_tb.v

@@ -32,6 +32,8 @@ module tinyriscv_soc_top(
     output wire [`BridgeBus] bmaster_TX_data, // 渚沯tag妯″潡浣跨敤鐨勬ˉ鎺ヤ富鎺ュ彛鏁版嵁鎬荤嚎
     input wire [`BridgeBus] bmaster_RX_data,   // 渚沯tag妯″潡浣跨敤鐨勬ˉ鎺ヤ富鎺ュ彛鏁版嵁鎬荤嚎
 
+    output wire [2:0] pwm_o, // PWM外设的输出信号
+
     output wire SCL_o ,  
     output wire SDA_o ,  
     output wire SDA_oe_o, 
@@ -53,6 +55,9 @@ module tinyriscv_soc_top(
     // output wire halted_ind,  // jtag鏄惁宸茬粡halt浣廋PU淇″彿
 
     );
+
+    wire [3:0] pwm_out_tmp ;
+    assign pwm_o = pwm_out_tmp[2:0];
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
@@ -346,10 +351,10 @@ module tinyriscv_soc_top(
         .s5_we_o(),
 
         // slave 6 interface
-        .s6_addr_o(),
-        .s6_data_o(),
-        .s6_data_i(`ZeroWord),
-        .s6_we_o(),
+        .s6_addr_o(s6_addr_o),
+        .s6_data_o(s6_data_o),
+        .s6_data_i(s6_data_i),
+        .s6_we_o(s6_we_o),
 
         // slave 7 interface
         .s7_req_o(s7_req_o),
@@ -409,6 +414,22 @@ module tinyriscv_soc_top(
     .SDA_oe_o(SDA_oe_o), 
     .SDA_i(SDA_i)  
 
+    );
+
+
+
+    pwm u_pwm  (
+
+        .clk     ( clk ) ,
+        .rst     ( rst ) ,
+        .we_i    ( s6_we_o ) ,
+        .addr_i  ( s6_addr_o ),
+        .data_i  ( s6_data_o ),
+        .data_o  ( s6_data_i ),
+        .PWM_o   ( pwm_out_tmp )
+        
+    ) ;
+
     // jtag妯″潡渚嬪寲
     // jtag_top #(
     //     .DMI_ADDR_BITS(6),
@@ -434,6 +455,5 @@ module tinyriscv_soc_top(
     //     .reset_req_o(jtag_reset_req_o)
     // );
 
-  ) ;
 
 endmodule

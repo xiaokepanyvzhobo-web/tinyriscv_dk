@@ -13,7 +13,8 @@ module tinyriscv_soc_top_with_bridge(
     input wire uart_rx_pin,  // UART接收引脚
 
     inout wire io_sda, // IIC数据总线
-    output io_scl       // IIC时钟总线
+    output io_scl,       // IIC时钟总线
+    output wire [2:0] pwm_o 
 
     );
 
@@ -45,7 +46,8 @@ module tinyriscv_soc_top_with_bridge(
         .SCL_o(SCL_o) ,  
         .SDA_o(SDA_o) ,  
         .SDA_oe_o(SDA_oe_o), 
-        .SDA_i(SDA_i)  
+        .SDA_i(SDA_i)  ,
+        .pwm_o(pwm_o)
 
         );
 
